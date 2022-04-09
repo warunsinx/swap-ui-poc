@@ -3,7 +3,7 @@ import type { AppProps } from "next/app";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+    <div className="h-screen w-full flex flex-col items-center bg-gray-50">
       <Component {...pageProps} />
     </div>
   );
