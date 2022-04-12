@@ -12,7 +12,7 @@ export default function PoolModule() {
       <ConnectWalletButton />
       <p className="font-medium text-gray-500 mt-3">Your Liquidity</p>
       <div className="h-36 w-full bg-blue-100 rounded-xl mt-1.5 flex items-center justify-center text-gray-500">
-        <p>Connect to a wallet to view your liquidity.</p>
+        <p>Connect a wallet to view your liquidity.</p>
       </div>
     </div>
   );
