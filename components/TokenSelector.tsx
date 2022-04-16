@@ -19,7 +19,7 @@ export default function TokenSelector({
         className="h-full flex items-center justify-center pr-2 select-none cursor-pointer"
       >
         <div className="h-10 bg-blue-100 w-full rounded-lg flex items-center justify-center text-blue-500 pl-3 pr-1 hover:bg-opacity-80">
-          <p>Select a Token</p>
+          <p>{selectedToken || "Select a Token"}</p>
           <ChevronDownIcon className="w-5" />
         </div>
       </div>
@@ -62,8 +62,15 @@ export default function TokenSelector({
                   Select a token
                 </p>
                 <div className="space-y-2.5 mt-2">
-                  {SWAP_TOKENS.map((token) => (
-                    <div className="flex items-center w-full justify-between rounded-lg p-3 bg-blue-100 text-blue-500">
+                  {SWAP_TOKENS.map((token, i) => (
+                    <div
+                      key={i}
+                      onClick={() => {
+                        setSelectedToken(token.symbol);
+                        setIsOpen(false);
+                      }}
+                      className="cursor-pointer flex items-center w-full justify-between rounded-lg p-3 bg-blue-100 text-blue-500 hover:bg-opacity-80"
+                    >
                       <p className="text-lg">{token.symbol}</p>
                       <p className="text-lg">0.0</p>
                     </div>
