@@ -2,15 +2,19 @@ import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/solid";
 import { SWAP_TOKENS } from "../constants/tokens";
+import useWalletStore from "../stores/WalletStore";
 
 export default function TokenSelector({
   selectedToken,
   setSelectedToken,
+  tokens,
 }: {
   selectedToken: string;
   setSelectedToken: (token: string) => void;
+  tokens: typeof SWAP_TOKENS;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const balances = useWalletStore((state) => state.balances);
 
   return (
     <>
@@ -62,7 +66,7 @@ export default function TokenSelector({
                   Select a token
                 </p>
                 <div className="space-y-2.5 mt-2">
-                  {SWAP_TOKENS.map((token, i) => (
+                  {tokens.map((token, i) => (
                     <div
                       key={i}
                       onClick={() => {
@@ -72,7 +76,7 @@ export default function TokenSelector({
                       className="cursor-pointer flex items-center w-full justify-between rounded-lg p-3 bg-blue-100 text-blue-500 hover:bg-opacity-80"
                     >
                       <p className="text-lg">{token.symbol}</p>
-                      <p className="text-lg">0.0</p>
+                      <p className="text-lg">{balances[token.symbol]}</p>
                     </div>
                   ))}
                 </div>

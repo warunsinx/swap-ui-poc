@@ -2,7 +2,17 @@ import { Dialog, Transition } from "@headlessui/react";
 import { AdjustmentsIcon } from "@heroicons/react/solid";
 import { Fragment, useState } from "react";
 
-export default function SwapSettingButton() {
+export default function SwapSettingButton({
+  tol,
+  setTol,
+  deadline,
+  setDeadline,
+}: {
+  tol: number;
+  setTol: (val: number) => void;
+  deadline: number;
+  setDeadline: (val: number) => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -54,6 +64,8 @@ export default function SwapSettingButton() {
                   </p>
                   <div className="flex items-center space-x-2">
                     <input
+                      value={tol}
+                      onChange={(e) => setTol(+e.target.value)}
                       type="number"
                       className="w-full border-2 border-blue-400 rounded-lg h-12 px-5 text-blue-500"
                     />
@@ -64,6 +76,8 @@ export default function SwapSettingButton() {
                   </p>
                   <div className="flex items-center space-x-2">
                     <input
+                      value={deadline}
+                      onChange={(e) => setDeadline(+e.target.value)}
                       type="number"
                       className="w-full border-2 border-blue-400 rounded-lg h-12 px-5 text-blue-500"
                     />

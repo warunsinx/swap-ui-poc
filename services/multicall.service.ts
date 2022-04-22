@@ -1,3 +1,11 @@
+import { ContractCallContext } from "ethereum-multicall";
+import { SWAP_TOKENS as ALL_TOKENS, NAMED_TOKENS } from "../constants/tokens";
+import { ADDRESS_LIST } from "../constants/addressList";
+import { formatUnits } from "ethers/lib/utils";
+import { getMulticall as multicall } from "../utils/getMulticall";
+import { KAP20__factory } from "../typechain-tokens/factories/KAP20__factory";
+import { TestKUSDT__factory } from "../typechain/factories/TestKUSDT__factory";
+
 const getTokenBalances = async (address: string) => {
   const tokens = ALL_TOKENS.filter((token) => token.symbol !== "KUB").map(
     (token) => token.symbol
@@ -15,19 +23,6 @@ const getTokenBalances = async (address: string) => {
         },
       ],
     }));
-
-    contractCallContext.push({
-      reference: "KKUB",
-      contractAddress: ADDRESS_LIST["KKUB"],
-      abi: KAP20__factory.abi,
-      calls: [
-        {
-          reference: "KKUB",
-          methodName: "balanceOf",
-          methodParameters: [address],
-        },
-      ],
-    });
 
     const response = await multicall.call(contractCallContext);
 
@@ -55,34 +50,21 @@ const getTokenBalances = async (address: string) => {
 
 const getAllowances = async (address: string) => {
   const tokens = ALL_TOKENS.map((token) => token.symbol).filter(
-    (token) => !["KUB", "YES"].includes(token)
+    (token) => !["KUB"].includes(token)
   );
   try {
     const contractCallContext: ContractCallContext[] = tokens.map((token) => ({
       reference: token,
       contractAddress: ADDRESS_LIST[token],
-      abi: TestKUSDT__factory.abi,
+      abi: token === "KUSDT" ? TestKUSDT__factory.abi : KAP20__factory.abi,
       calls: [
         {
           reference: token,
           methodName: token === "KUSDT" ? "allowances" : "allowance",
-          methodParameters: [address, ADDRESS_LIST[`${token}Lending`]],
+          methodParameters: [address, ADDRESS_LIST["SwapRouter"]],
         },
       ],
     }));
-
-    contractCallContext.push({
-      reference: "YES",
-      contractAddress: ADDRESS_LIST["YES"],
-      abi: KAP20__factory.abi,
-      calls: [
-        {
-          reference: "YES",
-          methodName: "allowance",
-          methodParameters: [address, ADDRESS_LIST["YESVault"]],
-        },
-      ],
-    });
 
     const response = await multicall.call(contractCallContext);
 

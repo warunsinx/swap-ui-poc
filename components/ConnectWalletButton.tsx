@@ -1,28 +1,16 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState } from "react";
 import CustomButton from "./CustomButton";
-import { ethereum } from "../utils/ethereum";
+import useWalletStore from "../stores/WalletStore";
 
 export default function ConnectWalletButton() {
   const [isOpen, setIsOpen] = useState(false);
 
+  const connectMetamask = useWalletStore((state) => state.connectMetamask);
+
   const handleMetamask = async () => {
-    try {
-      const eth = ethereum();
-      if (eth) {
-        const accounts = await eth.request({
-          method: "eth_requestAccounts",
-        });
-        const account: string = accounts[0];
-        console.log(account);
-      }
-      setIsOpen(false);
-      return null;
-    } catch (e: any) {
-      console.error(e.response);
-      setIsOpen(false);
-      return null;
-    }
+    await connectMetamask();
+    setIsOpen(false);
   };
 
   const handleBitkubNext = async () => {

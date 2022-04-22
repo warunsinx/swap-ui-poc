@@ -24,3 +24,8 @@ export const SWAP_TOKENS = [
     fraction: 2,
   },
 ];
+
+export const NAMED_TOKENS = SWAP_TOKENS.reduce((prev, cur) => {
+  prev[cur.symbol] = cur;
+  return prev;
+}, {} as Record<string, typeof SWAP_TOKENS[0]>);
