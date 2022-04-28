@@ -62,9 +62,13 @@ export default function TokenSelector({
               leaveTo="opacity-0 scale-95"
             >
               <div className="inline-block w-full max-w-md h-96 p-5 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
-                <p className="text-blue-500 font-medium pl-0.5">
-                  Select a token
-                </p>
+                <div className="flex justify-center items-center">
+                  <button />
+                  <p className="text-blue-500 font-medium pl-0.5 text-center">
+                    Select a token
+                  </p>
+                </div>
+
                 <div className="space-y-2.5 mt-2">
                   {tokens.map((token, i) => (
                     <div

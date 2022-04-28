@@ -16,9 +16,10 @@ export default function SwapModule() {
   const [finalAmount, setFinalAmount] = useState("");
   const [slipageTol, setSlipageTol] = useState(0.8);
   const [deadlineMinute, setDeadlineMinute] = useState(20);
-
   const [approveLoad, setApproveLoad] = useState(false);
   const [swapLoad, setSwapLoad] = useState(false);
+  const [spotPrice, setSpotPrice] = useState(0);
+  const [invalidPair, setInvalidPair] = useState(false);
 
   const wallet = useWalletStore((state) => state.address);
   const allowances = useWalletStore((state) => state.allowances);
@@ -32,16 +33,28 @@ export default function SwapModule() {
     const deadline =
       Math.floor(new Date().getTime() / 1000) + deadlineMinute * 60;
     const minAmountOut = +finalAmount - (+finalAmount * slipageTol) / 100;
+
     try {
-      await swapService
-        .swapExactTokensForTokens(
+      if (initToken === "KUB") {
+        const tx = await swapService.swapExactETHForTokens(
           +initAmount,
           minAmountOut,
-          [initToken, finalToken],
+          ["KKUB", finalToken],
           wallet,
           deadline
-        )
-        .then((tx) => tx.wait());
+        );
+        await tx.wait();
+      } else {
+        const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
+        const tx = await swapService.swapExactTokensForTokens(
+          +initAmount,
+          minAmountOut,
+          [initToken, _finalToken],
+          wallet,
+          deadline
+        );
+        await tx.wait();
+      }
     } catch (err) {
       setSwapLoad(false);
     }
@@ -60,25 +73,61 @@ export default function SwapModule() {
     setApproveLoad(false);
   };
 
-  const getAmountOut = async () => {
-    const res = await swapService.getAmountOut(
-      +initAmount,
-      initToken,
-      finalToken
-    );
-    setFinalAmount(res);
+  const calculateSwap = async (calculateOut: boolean = true, value: string) => {
+    const _initToken = initToken === "KUB" ? "KKUB" : initToken;
+    const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
+
+    if (calculateOut) {
+      const _finalAmount = await swapService.getAmountsOut(
+        +value,
+        _initToken,
+        _finalToken
+      );
+      if (+_finalAmount > 0) {
+        setInvalidPair(false);
+        setFinalAmount(_finalAmount);
+        const _spotPrice = await swapService.getSpotPrice(
+          _initToken,
+          _finalToken
+        );
+        setSpotPrice(_spotPrice);
+      } else return setInvalidPair(true);
+    } else {
+      const _initAmount = await swapService.getAmountsIn(
+        +value,
+        _initToken,
+        _finalToken
+      );
+      if (+_initAmount > 0) {
+        setInvalidPair(false);
+        setInitAmount(_initAmount);
+        const _spotPrice = await swapService.getSpotPrice(
+          _initToken,
+          _finalToken
+        );
+        setSpotPrice(_spotPrice);
+      } else return setInvalidPair(true);
+    }
   };
 
   useEffect(() => {
     if (initToken && finalToken && +initAmount > 0) {
-      getAmountOut();
+      calculateSwap(true, initAmount);
+    } else if (initToken && finalToken && +finalAmount > 0) {
+      calculateSwap(false, finalAmount);
     }
-  }, [initToken, finalToken, initAmount]);
+  }, [initToken, finalToken, slipageTol]);
 
   const renderButton = () => {
     if (!wallet) {
       // check wallet
-      return <ConnectWalletButton />;
+      if (invalidPair) {
+        // check invalid pair
+        return <CustomButton text="Invalid Pair" disabled={true} />;
+      } else return <ConnectWalletButton />;
+    } else if (invalidPair) {
+      // check invalid pair
+      return <CustomButton text="Invalid Pair" disabled={true} />;
     } else if (
       initToken &&
       finalToken &&
@@ -95,6 +144,7 @@ export default function SwapModule() {
       initAmount &&
       +allowances[initToken] === 0
     ) {
+      // check allowance
       return (
         <CustomButton
           text={`Approve ${initToken}`}
@@ -108,12 +158,26 @@ export default function SwapModule() {
       return (
         <CustomButton
           text="Swap"
-          disabled={swapLoad || !initToken || !finalToken || +initAmount <= 0}
+          disabled={
+            swapLoad ||
+            !initToken ||
+            !finalToken ||
+            +initAmount <= 0 ||
+            +finalAmount <= 0 ||
+            invalidPair
+          }
           isLoading={swapLoad}
           onClick={handleSwap}
         />
       );
     }
+  };
+
+  const calculatePriceImpact = () => {
+    const fee = 1 - 0.3 / 100;
+    const spot = spotPrice * fee;
+    const exec = +finalAmount / +initAmount;
+    return (((spot - exec) / spot) * 100 * fee).toFixed(2);
   };
 
   return (
@@ -133,7 +197,10 @@ export default function SwapModule() {
         <div className="relative mt-4">
           <input
             value={initAmount}
-            onChange={(e) => setInitAmount(e.target.value)}
+            onChange={(e) => {
+              setInitAmount(e.target.value);
+              calculateSwap(true, e.target.value);
+            }}
             type="number"
             className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500"
           />
@@ -158,7 +225,10 @@ export default function SwapModule() {
         <div className="relative mb-4">
           <input
             value={finalAmount}
-            onChange={(e) => setFinalAmount(e.target.value)}
+            onChange={(e) => {
+              setFinalAmount(e.target.value);
+              calculateSwap(false, e.target.value);
+            }}
             type="number"
             className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500"
           />
@@ -171,7 +241,7 @@ export default function SwapModule() {
           </div>
         </div>
         {renderButton()}
-        {finalAmount && (
+        {finalAmount && !invalidPair && (
           <div className="flex justify-between items-center mt-3 text-sm font-medium text-gray-500">
             <p>Price</p>
             <p>
@@ -181,7 +251,7 @@ export default function SwapModule() {
           </div>
         )}
       </div>
-      {finalAmount && (
+      {finalAmount && !invalidPair && (
         <div className="w-full max-w-md bg-white shadow-xl rounded-3xl p-7 py-5 mt-6 text-sm font-medium text-gray-500 space-y-1">
           <div className="flex items-center justify-between">
             <p>Minimum received</p>
@@ -192,11 +262,18 @@ export default function SwapModule() {
           </div>
           <div className="flex items-center justify-between">
             <p>Price Impact</p>
-            <p>0%</p>
+            <p>
+              {+calculatePriceImpact() < 0.001
+                ? "< 0.01"
+                : calculatePriceImpact()}
+              {" %"}
+            </p>
           </div>
           <div className="flex items-center justify-between">
             <p>Liquidity Provider Fee</p>
-            <p>0 {initToken}</p>
+            <p>
+              {(0.003 * +initAmount).toFixed(6)} {initToken}
+            </p>
           </div>
         </div>
       )}

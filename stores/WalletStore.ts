@@ -13,6 +13,7 @@ const store = (set: any, get: any) => ({
   walletType: "" as WalletType,
   balances: {} as Record<string, string>,
   allowances: {} as Record<string, string>,
+  liquidities: {} as Record<string, string>,
   subscribeWalletChanged: (callback?: (address: string) => void) => {
     const eth = ethereum();
     if (eth) {
@@ -68,10 +69,18 @@ const store = (set: any, get: any) => ({
       const allowances = await multicallService.getAllowances(address);
       set({ allowances });
     } else {
-      console.log("Error");
       set({ allowances: {} });
     }
   },
+  // loadLiquidiities: async () => {
+  //   const address = get().address;
+  //   if (address) {
+  //     const liquidities = await multicallService;
+  //     set({ liquidities });
+  //   } else {
+  //     set({ liquidities: {} });
+  //   }
+  // },
 });
 
 type WalletStore = ReturnType<typeof store>;
