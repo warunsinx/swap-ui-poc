@@ -45,6 +45,7 @@ export default function PoolModule() {
             finalToken,
             finalAmount,
             amountTokenMin.toString(),
+            initAmount,
             amountETHMin.toString(),
             wallet,
             deadline
@@ -57,6 +58,7 @@ export default function PoolModule() {
             initToken,
             initAmount,
             amountTokenMin.toString(),
+            finalAmount,
             amountETHMin.toString(),
             wallet,
             deadline

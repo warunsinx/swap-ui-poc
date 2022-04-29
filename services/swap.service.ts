@@ -146,6 +146,7 @@ const addLiquidityETH = async (
   token: string,
   amountToken: string,
   amountTokenMin: string,
+  amountETH: string,
   amountETHMin: string,
   to: string,
   deadline: number
@@ -160,7 +161,8 @@ const addLiquidityETH = async (
     parseUnits(amountTokenMin.toString(), NAMED_TOKENS[token].decimals),
     parseEther(amountETHMin.toString()),
     to,
-    deadline
+    deadline,
+    { value: parseEther(amountETH.toString()) }
   );
 };
 
