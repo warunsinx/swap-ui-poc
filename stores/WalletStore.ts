@@ -72,15 +72,16 @@ const store = (set: any, get: any) => ({
       set({ allowances: {} });
     }
   },
-  // loadLiquidiities: async () => {
-  //   const address = get().address;
-  //   if (address) {
-  //     const liquidities = await multicallService;
-  //     set({ liquidities });
-  //   } else {
-  //     set({ liquidities: {} });
-  //   }
-  // },
+  loadLiquidiities: async () => {
+    const address = get().address;
+    if (address) {
+      const liquidities = await multicallService.getPoolTokenBalances(address);
+      // console.log(liquidities);
+      set({ liquidities });
+    } else {
+      set({ liquidities: {} });
+    }
+  },
 });
 
 type WalletStore = ReturnType<typeof store>;

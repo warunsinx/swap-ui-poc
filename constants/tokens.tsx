@@ -33,6 +33,12 @@ export const SWAP_TOKENS = [
   },
 ];
 
+export const POOL_TOKENS = [
+  {
+    symbol: "KUSDT/YES",
+  },
+];
+
 export const NAMED_TOKENS = SWAP_TOKENS.reduce((prev, cur) => {
   prev[cur.symbol] = cur;
   return prev;

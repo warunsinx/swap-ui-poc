@@ -1,10 +1,15 @@
 import { ContractCallContext } from "ethereum-multicall";
-import { SWAP_TOKENS as ALL_TOKENS, NAMED_TOKENS } from "../constants/tokens";
+import {
+  SWAP_TOKENS as ALL_TOKENS,
+  NAMED_TOKENS,
+  POOL_TOKENS,
+} from "../constants/tokens";
 import { ADDRESS_LIST } from "../constants/addressList";
 import { formatUnits } from "ethers/lib/utils";
 import { getMulticall as multicall } from "../utils/getMulticall";
 import { KAP20__factory } from "../typechain-tokens/factories/KAP20__factory";
 import { TestKUSDT__factory } from "../typechain/factories/TestKUSDT__factory";
+import { DiamonPair__factory } from "../typechain/factories/DiamonPair__factory";
 
 const getTokenBalances = async (address: string) => {
   const tokens = ALL_TOKENS.filter((token) => token.symbol !== "KUB").map(
@@ -91,9 +96,51 @@ const getAllowances = async (address: string) => {
   }
 };
 
+const getPoolTokenBalances = async (address: string) => {
+  const tokens = POOL_TOKENS.map((token) => token.symbol);
+
+  try {
+    const contractCallContext: ContractCallContext[] = tokens.map((token) => ({
+      reference: token,
+      contractAddress: ADDRESS_LIST[token],
+      abi: DiamonPair__factory.abi,
+      calls: [
+        {
+          reference: token,
+          methodName: "balanceOf",
+          methodParameters: [address],
+        },
+      ],
+    }));
+
+    const response = await multicall.call(contractCallContext);
+
+    const result = Object.entries(response.results).reduce(
+      (prev, [token, data]) => {
+        const decimals = NAMED_TOKENS[token]
+          ? NAMED_TOKENS[token].decimals
+          : 18;
+        const [balance] = data.callsReturnContext[0].returnValues;
+        prev[token] = formatUnits(balance, decimals);
+        return prev;
+      },
+      {} as Record<string, string>
+    );
+
+    return result;
+  } catch (e) {
+    console.error(e);
+    return tokens.reduce((prev, cur) => {
+      prev[cur] = "0";
+      return prev;
+    }, {} as Record<string, string>);
+  }
+};
+
 const multicallService = {
   getTokenBalances,
   getAllowances,
+  getPoolTokenBalances,
 };
 
 export default multicallService;
