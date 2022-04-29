@@ -24,6 +24,14 @@ export const SWAP_TOKENS = [
     fraction: 2,
   },
   {
+    symbol: "KUSDC",
+    name: "KUSDC",
+    image: "",
+    remoteImg: ``,
+    decimals: 18,
+    fraction: 2,
+  },
+  {
     symbol: "YES",
     name: "YES Token",
     image: "",
@@ -36,6 +44,18 @@ export const SWAP_TOKENS = [
 export const POOL_TOKENS = [
   {
     symbol: "KUSDT/YES",
+  },
+  {
+    symbol: "KUSDC/YES",
+  },
+  {
+    symbol: "KUSDC/KUSDT",
+  },
+  {
+    symbol: "KKUB/YES",
+  },
+  {
+    symbol: "KUSDT/KKUB",
   },
 ];
 

@@ -80,7 +80,9 @@ export default function TokenSelector({
                       className="cursor-pointer flex items-center w-full justify-between rounded-lg p-3 bg-blue-100 text-blue-500 hover:bg-opacity-80"
                     >
                       <p className="text-lg">{token.symbol}</p>
-                      <p className="text-lg">{balances[token.symbol]}</p>
+                      <p className="text-lg">
+                        {parseFloat(balances[token.symbol]).toFixed(6)}
+                      </p>
                     </div>
                   ))}
                 </div>

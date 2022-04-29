@@ -349,19 +349,21 @@ export default function PoolModule() {
           <CustomButton text="Add Pool" onClick={() => setIsOpen(true)} />
         )}
         <p className="font-medium text-gray-500 mt-3 mb-1.5">Your Liquidity</p>
-        <div className="h-36 w-full bg-blue-100 rounded-xl flex justify-center text-gray-500 p-3">
+        <div className="w-full bg-blue-100 rounded-xl flex justify-center text-gray-500 p-3">
           {!wallet ? (
-            <p className="my-auto">Connect a wallet to view your liquidity.</p>
+            <p className="my-12">Connect a wallet to view your liquidity.</p>
           ) : (
-            POOL_TOKENS.map((token, i) => (
-              <div
-                className="w-full p-3 rounded-xl flex justify-between bg-blue-50 h-10 items-center text-blue-400"
-                key={i}
-              >
-                <p>{token.symbol}</p>
-                <p>{liquidities[token.symbol]}</p>
-              </div>
-            ))
+            <div className="w-full space-y-2">
+              {POOL_TOKENS.map((token, i) => (
+                <div
+                  className="w-full p-3 rounded-xl flex justify-between bg-blue-50 h-10 items-center text-blue-400"
+                  key={i}
+                >
+                  <p>{token.symbol}</p>
+                  <p>{parseFloat(liquidities[token.symbol]).toFixed(5)}</p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
