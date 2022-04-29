@@ -100,6 +100,13 @@ export default function PoolModule() {
   };
 
   const calculatePool = async (calculateOut: boolean = true, value: string) => {
+    if (
+      (initToken === "KUB" && finalToken === "KKUB") ||
+      (initToken === "KKUB" && finalToken === "KUB")
+    ) {
+      return setInvalidPair(true);
+    }
+
     const _initToken = initToken === "KUB" ? "KKUB" : initToken;
     const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
 
@@ -113,7 +120,7 @@ export default function PoolModule() {
         setSpotPrice(_spotPrice);
         setFinalAmount((_spotPrice * +value).toString());
       } else if (_spotPrice === -1) {
-        setInvalidPair(true);
+        setInvalidPair(false);
       }
     } else {
       const _spotPrice = await swapService.getSpotPrice(
@@ -125,7 +132,7 @@ export default function PoolModule() {
         setSpotPrice(_spotPrice);
         setInitAmount((_spotPrice * +value).toString());
       } else if (_spotPrice === -1) {
-        setInvalidPair(true);
+        setInvalidPair(false);
       }
     }
   };

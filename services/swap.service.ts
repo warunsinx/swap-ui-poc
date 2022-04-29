@@ -101,8 +101,6 @@ const getSpotPrice = async (token1: string, token2: string) => {
       ADDRESS_LIST[token2]
     );
 
-    console.log(pairAddr);
-
     const inOrder = Number(ADDRESS_LIST[token1]) < Number(ADDRESS_LIST[token2]);
 
     const [r0, r1] = await swapPairContract(pairAddr).getReserves();
