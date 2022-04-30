@@ -8,7 +8,7 @@ The purpose of this project is to learn all the formula of DEX/AMM(Automated Mar
 
 The project now is configered to the Bitkub Chain Mainnet which used all the liquidities and smart contract(swapRouter, swapFactory) from DiamonFinance, to change this setting you only need to edit the addressList.ts constant to any of your desire smart contract address.
 
-Live Demo: [customswapconnector.vercel.app/](https://customswapconnector.vercel.app/)
+Live Demo: [customswapconnector.vercel.app/](https://customswapconnector.vercel.app)
 
 Explanation Video: [youtube.com/watch?v=vYbimjkfEMQ](https://www.youtube.com/watch?v=vYbimjkfEMQ&t=29s)
 
