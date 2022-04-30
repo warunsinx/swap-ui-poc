@@ -96,7 +96,7 @@ export default function TokenSelector({
                         <p className="text-lg ml-1.5">{token.symbol}</p>
                       </div>
                       <p className="text-lg">
-                        {parseFloat(balances[token.symbol]).toFixed(6)}
+                        {parseFloat(balances[token.symbol] || "0.0").toFixed(6)}
                       </p>
                     </div>
                   ))}

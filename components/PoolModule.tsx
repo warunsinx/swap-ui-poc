@@ -367,7 +367,9 @@ export default function PoolModule() {
                   key={i}
                 >
                   <p>{token.symbol}</p>
-                  <p>{parseFloat(liquidities[token.symbol]).toFixed(5)}</p>
+                  <p>
+                    {parseFloat(liquidities[token.symbol] || "0.0").toFixed(5)}
+                  </p>
                 </div>
               ))}
             </div>
