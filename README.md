@@ -10,6 +10,8 @@ The project now is configered to the Bitkub Chain Mainnet which used all the liq
 
 Live Demo: [customswapconnector.vercel.app/](https://customswapconnector.vercel.app/)
 
+Explanation Video: [youtube.com/watch?v=vYbimjkfEMQ](https://www.youtube.com/watch?v=vYbimjkfEMQ&t=29s)
+
 ## Technologies used in this Project
 
 - TypeScript a typesafe language on top of JavaScript that are used throughout this Project. 
