@@ -1,8 +1,9 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/solid";
-import { SWAP_TOKENS } from "../constants/tokens";
+import { SWAP_TOKENS, NAMED_TOKENS } from "../constants/tokens";
 import useWalletStore from "../stores/WalletStore";
+import Image from "next/image";
 
 export default function TokenSelector({
   selectedToken,
@@ -23,7 +24,18 @@ export default function TokenSelector({
         className="h-full flex items-center justify-center pr-2 select-none cursor-pointer"
       >
         <div className="h-10 bg-blue-100 w-full rounded-lg flex items-center justify-center text-blue-500 pl-3 pr-1 hover:bg-opacity-80">
-          <p>{selectedToken || "Select a Token"}</p>
+          {selectedToken ? (
+            <div className="flex justify-center items-center">
+              <Image
+                src={NAMED_TOKENS[selectedToken].image}
+                width={25}
+                height={25}
+              />
+              <p className="ml-2">{selectedToken}</p>
+            </div>
+          ) : (
+            <p>Select a Token</p>
+          )}
           <ChevronDownIcon className="w-5" />
         </div>
       </div>
@@ -79,7 +91,10 @@ export default function TokenSelector({
                       }}
                       className="cursor-pointer flex items-center w-full justify-between rounded-lg p-3 bg-blue-100 text-blue-500 hover:bg-opacity-80"
                     >
-                      <p className="text-lg">{token.symbol}</p>
+                      <div className="flex justify-center items-center">
+                        <Image src={token.image} width={25} height={25} />
+                        <p className="text-lg ml-1.5">{token.symbol}</p>
+                      </div>
                       <p className="text-lg">
                         {parseFloat(balances[token.symbol]).toFixed(6)}
                       </p>

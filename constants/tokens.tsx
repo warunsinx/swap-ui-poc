@@ -2,7 +2,7 @@ export const SWAP_TOKENS = [
   {
     symbol: "KUB",
     name: "Bitkub Coin",
-    image: "",
+    image: "/images/kub-logo.png",
     remoteImg: ``,
     decimals: 18,
     fraction: 2,
@@ -10,7 +10,7 @@ export const SWAP_TOKENS = [
   {
     symbol: "KKUB",
     name: "Wrapped Bitkub Coin",
-    image: "",
+    image: "/images/kub-logo.png",
     remoteImg: ``,
     decimals: 18,
     fraction: 2,
@@ -18,7 +18,7 @@ export const SWAP_TOKENS = [
   {
     symbol: "KUSDT",
     name: "KUSDT",
-    image: "",
+    image: "/images/usdt-logo.png",
     remoteImg: ``,
     decimals: 18,
     fraction: 2,
@@ -26,7 +26,7 @@ export const SWAP_TOKENS = [
   {
     symbol: "KUSDC",
     name: "KUSDC",
-    image: "",
+    image: "/images/usdc-logo.png",
     remoteImg: ``,
     decimals: 18,
     fraction: 2,
@@ -34,7 +34,7 @@ export const SWAP_TOKENS = [
   {
     symbol: "YES",
     name: "YES Token",
-    image: "",
+    image: "/images/yes-logo.png",
     remoteImg: ``,
     decimals: 18,
     fraction: 2,
