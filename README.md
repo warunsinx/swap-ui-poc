@@ -10,7 +10,7 @@ The project now is configered to the Bitkub Chain Mainnet which used all the liq
 
 Live Demo: [customswapconnector.vercel.app](https://customswapconnector.vercel.app)
 
-Explanation Video: [youtube.com/watch?v=vYbimjkfEMQ](https://www.youtube.com/watch?v=vYbimjkfEMQ&t=29s)
+Explanation Video: [youtube.com/watch?v=vYbimjkfEMQ](https://www.youtube.com/watch?v=vYbimjkfEMQ)
 
 ## Technologies used in this Project
 
