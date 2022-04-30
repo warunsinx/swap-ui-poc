@@ -8,7 +8,7 @@ The purpose of this project is to learn all the formula of DEX/AMM(Automated Mar
 
 The project now is configered to the Bitkub Chain Mainnet which used all the liquidities and smart contract(swapRouter, swapFactory) from DiamonFinance, to change this setting you only need to edit the addressList.ts constant to any of your desire smart contract address.
 
-Live Demo: [custom-swap-connector.vercel.app](https://custom-swap-connector.vercel.app/)
+Live Demo: [customswapconnector.vercel.app/](https://customswapconnector.vercel.app/)
 
 ## Technologies used in this Project
 
@@ -23,7 +23,7 @@ Live Demo: [custom-swap-connector.vercel.app](https://custom-swap-connector.verc
 ## Functionalities
 
 - Swap between 2 different erc20 token (swapExactTokensForTokens)
-- Swap from native token to erc20 token and reverse (swapExactETHForTokens)
+- Swap from native token to erc20 token (swapExactETHForTokens) and reverse
 - Add liquidity pool for 2 different erc20 token (addLiquidity)
 - Add liquidity pool for native token and erc20 token (addLiquidityETH)
 - Display all the amount of liquidity pool that the user provide
