@@ -66,7 +66,11 @@ const store = (set: any, get: any) => ({
   loadAllowances: async () => {
     const address = get().address;
     if (address) {
-      const allowances = await multicallService.getAllowances(address);
+      const tokenAllowances = await multicallService.getAllowances(address);
+      const poolAllowances = await multicallService.getPoolTokenAllowances(
+        address
+      );
+      const allowances = { ...tokenAllowances, ...poolAllowances };
       set({ allowances });
     } else {
       set({ allowances: {} });
@@ -76,7 +80,6 @@ const store = (set: any, get: any) => ({
     const address = get().address;
     if (address) {
       const liquidities = await multicallService.getPoolTokenBalances(address);
-      // console.log(liquidities);
       set({ liquidities });
     } else {
       set({ liquidities: {} });

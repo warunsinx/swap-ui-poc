@@ -4,7 +4,12 @@ import {
   swapFactoryContract,
   swapPairContract,
 } from "../contracts/index";
-import { parseUnits, formatUnits, parseEther } from "ethers/lib/utils";
+import {
+  parseUnits,
+  formatUnits,
+  parseEther,
+  formatEther,
+} from "ethers/lib/utils";
 import * as ethers from "ethers";
 import { NAMED_TOKENS } from "../constants/tokens";
 import { getSigner } from "../utils/getProvider";
@@ -92,23 +97,47 @@ const swapExactETHForTokens = async (
   );
 };
 
-const getSpotPrice = async (token1: string, token2: string) => {
+const getReserve = async (token1: string, token2: string) => {
   const factoryContract = swapFactoryContract(CONTRACT_ADDRESS.SwapFactory);
 
+  const pairAddr = await factoryContract.getPair(
+    ADDRESS_LIST[token1],
+    ADDRESS_LIST[token2]
+  );
+
+  const inOrder = Number(ADDRESS_LIST[token1]) < Number(ADDRESS_LIST[token2]);
+
+  const [r0, r1] = await swapPairContract(pairAddr).getReserves();
+  const fr0 = formatUnits(r0, NAMED_TOKENS[token1].decimals);
+  const fr1 = formatUnits(r1, NAMED_TOKENS[token2].decimals);
+
+  return inOrder ? [fr0, fr1] : [fr1, fr0];
+};
+
+const getShareOfPool = (reserve: number, amountIn: number) => {
+  return (amountIn / (reserve + amountIn)) * 100;
+};
+
+const getPooledToken = async (
+  lpToken: string,
+  token1: string,
+  token2: string,
+  lpAmount: number
+) => {
+  const totalSupply = await swapPairContract(
+    ADDRESS_LIST[lpToken]
+  ).totalSupply();
+  const reserve = await getReserve(token1, token2);
+  const pToken1 = (lpAmount / +formatEther(totalSupply)) * +reserve[0];
+  const pToken2 = (lpAmount / +formatEther(totalSupply)) * +reserve[1];
+  const poolShare = (lpAmount / +formatEther(totalSupply)) * 100;
+  return [pToken1, pToken2, poolShare, +reserve[0], +reserve[1]];
+};
+
+const getSpotPrice = async (token1: string, token2: string) => {
   try {
-    const pairAddr = await factoryContract.getPair(
-      ADDRESS_LIST[token1],
-      ADDRESS_LIST[token2]
-    );
-
-    const inOrder = Number(ADDRESS_LIST[token1]) < Number(ADDRESS_LIST[token2]);
-
-    const [r0, r1] = await swapPairContract(pairAddr).getReserves();
-    const fr0 = formatUnits(r0, NAMED_TOKENS[token1].decimals);
-    const fr1 = formatUnits(r1, NAMED_TOKENS[token2].decimals);
-    const spotPrice = inOrder ? +fr1 / +fr0 : +fr0 / +fr1;
-
-    return spotPrice;
+    const reserve = await getReserve(token1, token2);
+    return +reserve[1] / +reserve[0];
   } catch (err) {
     return -1;
   }
@@ -164,6 +193,39 @@ const addLiquidityETH = async (
   );
 };
 
+const removeLiquidity = async (
+  tokenA: string,
+  tokenB: string,
+  liquidity: string,
+  amountAMin: string,
+  amountBMin: string,
+  to: string,
+  deadline: number
+) => {
+  const signer = getSigner();
+  const routerContract = swapRouterContract(
+    CONTRACT_ADDRESS.SwapRouter
+  ).connect(signer);
+  return routerContract.removeLiquidity(
+    ADDRESS_LIST[tokenA],
+    ADDRESS_LIST[tokenB],
+    parseEther(liquidity),
+    parseUnits(amountAMin.toString(), NAMED_TOKENS[tokenA].decimals),
+    parseUnits(amountBMin.toString(), NAMED_TOKENS[tokenB].decimals),
+    to,
+    deadline
+  );
+};
+
+const getPairAddr = async (token1: string, token2: string) => {
+  const factoryContract = swapFactoryContract(CONTRACT_ADDRESS.SwapFactory);
+  const pairAddr = await factoryContract.getPair(
+    ADDRESS_LIST[token1],
+    ADDRESS_LIST[token2]
+  );
+  console.log(pairAddr);
+};
+
 const swapService = {
   getAmountsOut,
   getAmountsIn,
@@ -172,6 +234,11 @@ const swapService = {
   getSpotPrice,
   addLiquidity,
   addLiquidityETH,
+  removeLiquidity,
+  getPairAddr,
+  getShareOfPool,
+  getPooledToken,
+  getReserve,
 };
 
 export default swapService;

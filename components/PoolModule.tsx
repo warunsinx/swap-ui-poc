@@ -9,6 +9,8 @@ import { PlusCircleIcon } from "@heroicons/react/solid";
 import tokenService from "../services/token.service";
 import swapService from "../services/swap.service";
 import SwapSettingButton from "./SwapSettingButton";
+import PoolListItem from "./PoolListItem";
+import to from "await-to-js";
 
 export default function PoolModule() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,8 +22,10 @@ export default function PoolModule() {
   const [slipageTol, setSlipageTol] = useState(0.8);
   const [deadlineMinute, setDeadlineMinute] = useState(20);
   const [addLoad, setAddLoad] = useState(false);
-  const [spotPrice, setSpotPrice] = useState(0);
   const [invalidPair, setInvalidPair] = useState(false);
+  const [shareOfPool, setShareOfPool] = useState(0);
+  const [lastInputted, setLastInputted] = useState(0);
+  const [reserves, setReserves] = useState([0, 0]);
 
   const wallet = useWalletStore((state) => state.address);
   const allowances = useWalletStore((state) => state.allowances);
@@ -29,6 +33,7 @@ export default function PoolModule() {
   const liquidities = useWalletStore((state) => state.liquidities);
   const loadAllowances = useWalletStore((state) => state.loadAllowances);
   const loadBalances = useWalletStore((state) => state.loadTokenBalances);
+  const loadLiquidiities = useWalletStore((state) => state.loadLiquidiities);
 
   const handleAddPool = async () => {
     setAddLoad(true);
@@ -84,7 +89,8 @@ export default function PoolModule() {
     } catch (err) {
       setAddLoad(false);
     }
-    loadBalances();
+    await loadLiquidiities();
+    await loadBalances();
     setAddLoad(false);
   };
 
@@ -107,32 +113,28 @@ export default function PoolModule() {
       return setInvalidPair(true);
     }
 
-    const _initToken = initToken === "KUB" ? "KKUB" : initToken;
-    const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
-
     if (calculateOut) {
-      const _spotPrice = await swapService.getSpotPrice(
-        _initToken,
-        _finalToken
-      );
+      const _spotPrice = reserves[1] / reserves[0];
       if (_spotPrice > 0) {
-        setInvalidPair(false);
-        setSpotPrice(_spotPrice);
-        setFinalAmount((_spotPrice * +value).toString());
+        const _finalAmount = _spotPrice * +value;
+        setFinalAmount(_finalAmount.toString());
+        const _shareOfPool = swapService.getShareOfPool(reserves[0], +value);
+        setShareOfPool(_shareOfPool);
       } else if (_spotPrice === -1) {
-        setInvalidPair(false);
+        return setInvalidPair(false);
       }
     } else {
-      const _spotPrice = await swapService.getSpotPrice(
-        _finalToken,
-        _initToken
-      );
+      const _spotPrice = reserves[0] / reserves[1];
       if (_spotPrice > 0) {
-        setInvalidPair(false);
-        setSpotPrice(_spotPrice);
-        setInitAmount((_spotPrice * +value).toString());
+        const _initAmount = _spotPrice * +value;
+        setInitAmount(_initAmount.toString());
+        const _shareOfPool = swapService.getShareOfPool(
+          reserves[0],
+          _initAmount
+        );
+        setShareOfPool(_shareOfPool);
       } else if (_spotPrice === -1) {
-        setInvalidPair(false);
+        return setInvalidPair(false);
       }
     }
   };
@@ -215,6 +217,24 @@ export default function PoolModule() {
     }
   };
 
+  useEffect(() => {
+    if (initToken && finalToken) {
+      getReserve();
+    }
+  }, [finalToken, initToken]);
+
+  const getReserve = async () => {
+    const _initToken = initToken === "KUB" ? "KKUB" : initToken;
+    const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
+    const [err, res] = await to(
+      swapService.getReserve(_initToken, _finalToken)
+    );
+    if (err) return setInvalidPair(true);
+    setInvalidPair(false);
+    const [r0, r1] = res;
+    setReserves([+r0, +r1]);
+  };
+
   return (
     <>
       <Transition appear show={isOpen} as={Fragment}>
@@ -257,6 +277,7 @@ export default function PoolModule() {
                     <input
                       value={initAmount}
                       onChange={(e) => {
+                        setLastInputted(0);
                         setInitAmount(e.target.value);
                         calculatePool(true, e.target.value);
                       }}
@@ -269,22 +290,19 @@ export default function PoolModule() {
                           (token) => token.symbol !== finalToken
                         )}
                         selectedToken={initToken}
-                        setSelectedToken={setInitToken}
+                        setSelectedToken={(token) => {
+                          getReserve();
+                          setInitToken(token);
+                        }}
                       />
                     </div>
                   </div>
-                  <PlusCircleIcon
-                    onClick={() => {
-                      setInitAmount(finalAmount);
-                      setInitToken(finalToken);
-                      setFinalToken(initToken);
-                    }}
-                    className="text-blue-500 w-8 h-8 my-3 mx-auto cursor-pointer"
-                  />
+                  <PlusCircleIcon className="text-blue-500 w-8 h-8 my-3 mx-auto" />
                   <div className="relative mb-6">
                     <input
                       value={finalAmount}
                       onChange={(e) => {
+                        setLastInputted(1);
                         setFinalAmount(e.target.value);
                         calculatePool(false, e.target.value);
                       }}
@@ -297,7 +315,10 @@ export default function PoolModule() {
                           (token) => token.symbol !== initToken
                         )}
                         selectedToken={finalToken}
-                        setSelectedToken={setFinalToken}
+                        setSelectedToken={(token) => {
+                          getReserve();
+                          setFinalToken(token);
+                        }}
                       />
                     </div>
                   </div>
@@ -305,10 +326,9 @@ export default function PoolModule() {
                   {finalAmount && (
                     <>
                       <p className="mt-5 mb-1 text-sm text-blue-500 font-medium">
-                        {/* Prices and Pool Share */}
-                        Prices
+                        Prices and Pool Share
                       </p>
-                      <div className="flex justify-between text-sm font-medium text-gray-500 border-2 border-blue-500 rounded-xl p-5 px-20">
+                      <div className="flex justify-between text-sm font-medium text-gray-500 border-2 border-blue-500 rounded-xl p-5 px-10">
                         <div className="flex flex-col items-center justify-between">
                           <p className="font-medium">
                             {(+finalAmount / +initAmount).toFixed(5)}
@@ -325,10 +345,12 @@ export default function PoolModule() {
                             {initToken} per {finalToken}
                           </p>
                         </div>
-                        {/* <div className="flex flex-col items-center justify-between">
-                          <p className="font-medium">{spotPrice.toFixed(2)}</p>
+                        <div className="flex flex-col items-center justify-between">
+                          <p className="font-medium">
+                            {shareOfPool.toFixed(5)}%
+                          </p>
                           <p className="text-blue-500">Share of Pool</p>
-                        </div> */}
+                        </div>
                       </div>
                     </>
                   )}
@@ -338,7 +360,7 @@ export default function PoolModule() {
           </div>
         </Dialog>
       </Transition>
-      <div className="w-full max-w-md bg-white shadow-xl rounded-xl p-7">
+      <div className="w-full max-w-md shadow-xl rounded-xl p-7 bg-white">
         <div className="flex items-center justify-between mb-3">
           <p className="p-0 m-0 text-blue-500 font-bold text-2xl select-none">
             Pool
@@ -356,22 +378,28 @@ export default function PoolModule() {
           <CustomButton text="Add Pool" onClick={() => setIsOpen(true)} />
         )}
         <p className="font-medium text-gray-500 mt-3 mb-1.5">Your Liquidity</p>
-        <div className="w-full bg-blue-100 rounded-xl flex justify-center text-gray-500 p-3">
+        <div className="w-full bg-blue-100 rounded-xl flex justify-center text-gray-500 p-3 pt-0">
           {!wallet ? (
             <p className="my-12">Connect a wallet to view your liquidity.</p>
           ) : (
-            <div className="w-full space-y-2">
-              {POOL_TOKENS.map((token, i) => (
-                <div
-                  className="w-full p-3 rounded-xl flex justify-between bg-blue-50 h-10 items-center text-blue-400"
-                  key={i}
-                >
-                  <p>{token.symbol}</p>
-                  <p>
-                    {parseFloat(liquidities[token.symbol] || "0.0").toFixed(5)}
-                  </p>
-                </div>
-              ))}
+            <div className="w-full">
+              {POOL_TOKENS.filter((token) => +liquidities[token.symbol] > 0)
+                .length ? (
+                POOL_TOKENS.filter(
+                  (token) => +liquidities[token.symbol] > 0.0000000000000001
+                ).map((token, i) => (
+                  <PoolListItem
+                    slipageTol={slipageTol}
+                    deadlineMinute={deadlineMinute}
+                    token={token}
+                    key={i}
+                  />
+                ))
+              ) : (
+                <p className="my-12 text-center">
+                  There is no liquidity found in your account.
+                </p>
+              )}
             </div>
           )}
         </div>

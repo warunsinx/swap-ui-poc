@@ -5,7 +5,7 @@ import {
   POOL_TOKENS,
 } from "../constants/tokens";
 import { ADDRESS_LIST } from "../constants/addressList";
-import { formatUnits } from "ethers/lib/utils";
+import { formatEther, formatUnits } from "ethers/lib/utils";
 import { getMulticall as multicall } from "../utils/getMulticall";
 import { KAP20__factory } from "../typechain-tokens/factories/KAP20__factory";
 import { TestKUSDT__factory } from "../typechain/factories/TestKUSDT__factory";
@@ -137,10 +137,48 @@ const getPoolTokenBalances = async (address: string) => {
   }
 };
 
+const getPoolTokenAllowances = async (address: string) => {
+  const tokens = POOL_TOKENS.map((token) => token.symbol);
+  try {
+    const contractCallContext: ContractCallContext[] = tokens.map((token) => ({
+      reference: token,
+      contractAddress: ADDRESS_LIST[token],
+      abi: token === "KUSDT" ? TestKUSDT__factory.abi : KAP20__factory.abi,
+      calls: [
+        {
+          reference: token,
+          methodName: "allowance",
+          methodParameters: [address, ADDRESS_LIST["SwapRouter"]],
+        },
+      ],
+    }));
+
+    const response = await multicall.call(contractCallContext);
+
+    const result = Object.entries(response.results).reduce(
+      (prev, [token, data]) => {
+        const [allowance] = data.callsReturnContext[0].returnValues;
+        prev[token] = Number(formatEther(allowance));
+        return prev;
+      },
+      {} as Record<string, number>
+    );
+
+    return result;
+  } catch (e) {
+    console.error(e);
+    return tokens.reduce((prev, cur) => {
+      prev[cur] = 0;
+      return prev;
+    }, {} as Record<string, number>);
+  }
+};
+
 const multicallService = {
   getTokenBalances,
   getAllowances,
   getPoolTokenBalances,
+  getPoolTokenAllowances,
 };
 
 export default multicallService;

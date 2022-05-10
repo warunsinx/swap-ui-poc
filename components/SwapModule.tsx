@@ -8,6 +8,7 @@ import { SWAP_TOKENS } from "../constants/tokens";
 import useWalletStore from "../stores/WalletStore";
 import CustomButton from "./CustomButton";
 import tokenService from "../services/token.service";
+import to from "await-to-js";
 
 export default function SwapModule() {
   const [initToken, setInitToken] = useState("");
@@ -20,6 +21,8 @@ export default function SwapModule() {
   const [swapLoad, setSwapLoad] = useState(false);
   const [spotPrice, setSpotPrice] = useState(0);
   const [invalidPair, setInvalidPair] = useState(false);
+  const [lastInputted, setLastInputted] = useState(0);
+  const [reserves, setReserves] = useState([0, 0]);
 
   const wallet = useWalletStore((state) => state.address);
   const allowances = useWalletStore((state) => state.allowances);
@@ -180,6 +183,24 @@ export default function SwapModule() {
     return (((spot - exec) / spot) * 100 * fee).toFixed(2);
   };
 
+  useEffect(() => {
+    if (initToken && finalToken) {
+      getReserve();
+    }
+  }, [finalToken, initToken]);
+
+  const getReserve = async () => {
+    const _initToken = initToken === "KUB" ? "KKUB" : initToken;
+    const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
+    const [err, res] = await to(
+      swapService.getReserve(_initToken, _finalToken)
+    );
+    if (err) return setInvalidPair(true);
+    setInvalidPair(false);
+    const [r0, r1] = res;
+    setReserves([+r0, +r1]);
+  };
+
   return (
     <>
       <div className="w-full max-w-md bg-white shadow-xl rounded-xl p-7">
@@ -198,6 +219,7 @@ export default function SwapModule() {
           <input
             value={initAmount}
             onChange={(e) => {
+              setLastInputted(0);
               setInitAmount(e.target.value);
               calculateSwap(true, e.target.value);
             }}
@@ -226,6 +248,7 @@ export default function SwapModule() {
           <input
             value={finalAmount}
             onChange={(e) => {
+              setLastInputted(1);
               setFinalAmount(e.target.value);
               calculateSwap(false, e.target.value);
             }}

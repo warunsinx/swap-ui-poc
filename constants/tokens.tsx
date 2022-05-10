@@ -44,18 +44,28 @@ export const SWAP_TOKENS = [
 export const POOL_TOKENS = [
   {
     symbol: "KUSDT/YES",
+    token1: "KUSDT",
+    token2: "YES",
   },
   {
     symbol: "KUSDC/YES",
+    token1: "KUSDC",
+    token2: "YES",
   },
   {
     symbol: "KUSDC/KUSDT",
+    token1: "KUSDC",
+    token2: "KUSDT",
   },
   {
     symbol: "KKUB/YES",
+    token1: "KKUB",
+    token2: "YES",
   },
   {
     symbol: "KUSDT/KKUB",
+    token1: "KUSDT",
+    token2: "KKUB",
   },
 ];
 
