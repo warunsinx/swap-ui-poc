@@ -115,26 +115,23 @@ export default function PoolModule() {
 
     if (calculateOut) {
       const _spotPrice = reserves[1] / reserves[0];
+      const _shareOfPool = swapService.getShareOfPool(reserves[0], +value);
+      const _finalAmount = _spotPrice * +value;
       if (_spotPrice > 0) {
-        const _finalAmount = _spotPrice * +value;
         setFinalAmount(_finalAmount.toString());
-        const _shareOfPool = swapService.getShareOfPool(reserves[0], +value);
         setShareOfPool(_shareOfPool);
-      } else if (_spotPrice === -1) {
-        return setInvalidPair(false);
+      } else {
+        setShareOfPool(_shareOfPool);
       }
     } else {
       const _spotPrice = reserves[0] / reserves[1];
+      const _initAmount = _spotPrice * +value;
+      const _shareOfPool = swapService.getShareOfPool(reserves[0], _initAmount);
       if (_spotPrice > 0) {
-        const _initAmount = _spotPrice * +value;
         setInitAmount(_initAmount.toString());
-        const _shareOfPool = swapService.getShareOfPool(
-          reserves[0],
-          _initAmount
-        );
         setShareOfPool(_shareOfPool);
-      } else if (_spotPrice === -1) {
-        return setInvalidPair(false);
+      } else {
+        setShareOfPool(_shareOfPool);
       }
     }
   };
@@ -229,8 +226,9 @@ export default function PoolModule() {
     const [err, res] = await to(
       swapService.getReserve(_initToken, _finalToken)
     );
-    if (err) return setInvalidPair(true);
-    setInvalidPair(false);
+    if (err) {
+      return setReserves([0, 0]);
+    }
     const [r0, r1] = res;
     setReserves([+r0, +r1]);
   };

@@ -132,6 +132,7 @@ const getReserve = async (token1: string, token2: string) => {
 };
 
 const getShareOfPool = (reserve: number, amountIn: number) => {
+  if (reserve === 0) return 100;
   return (amountIn / (reserve + amountIn)) * 100;
 };
 
