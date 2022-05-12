@@ -383,8 +383,9 @@ export default function PoolModule() {
             <p className="my-12">Connect a wallet to view your liquidity.</p>
           ) : (
             <div className="w-full">
-              {POOL_TOKENS.filter((token) => +liquidities[token.symbol] > 0)
-                .length ? (
+              {POOL_TOKENS.filter(
+                (token) => +liquidities[token.symbol] > 0.0000000000000001
+              ).length ? (
                 POOL_TOKENS.filter(
                   (token) => +liquidities[token.symbol] > 0.0000000000000001
                 ).map((token, i) => (

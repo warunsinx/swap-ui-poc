@@ -81,32 +81,36 @@ export default function SwapModule() {
     const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
 
     if (calculateOut) {
-      const _finalAmount = await swapService.getAmountsOut(
+      // const _finalAmount = await swapService.getAmountsOut(+value, [
+      //   _initToken,
+      //   _finalToken,
+      // ]);
+      const _finalAmount = await swapService.getAmountOut(
         +value,
-        _initToken,
-        _finalToken
+        reserves[0],
+        reserves[1]
       );
       if (+_finalAmount > 0) {
         setInvalidPair(false);
-        setFinalAmount(_finalAmount);
+        setFinalAmount(_finalAmount.toString());
         const _spotPrice = await swapService.getSpotPrice(
-          _initToken,
-          _finalToken
+          reserves[0],
+          reserves[1]
         );
         setSpotPrice(_spotPrice);
       } else return setInvalidPair(true);
     } else {
-      const _initAmount = await swapService.getAmountsIn(
+      const _initAmount = await swapService.getAmountIn(
         +value,
-        _initToken,
-        _finalToken
+        reserves[0],
+        reserves[1]
       );
       if (+_initAmount > 0) {
         setInvalidPair(false);
-        setInitAmount(_initAmount);
+        setInitAmount(_initAmount.toString());
         const _spotPrice = await swapService.getSpotPrice(
-          _initToken,
-          _finalToken
+          reserves[0],
+          reserves[1]
         );
         setSpotPrice(_spotPrice);
       } else return setInvalidPair(true);
@@ -279,7 +283,13 @@ export default function SwapModule() {
           <div className="flex items-center justify-between">
             <p>Minimum received</p>
             <p>
-              {(+finalAmount - (+finalAmount * slipageTol) / 100).toFixed(6)}{" "}
+              {(
+                +finalAmount -
+                (+finalAmount * slipageTol) / 100
+              ).toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 4,
+              })}{" "}
               {finalToken}
             </p>
           </div>
@@ -295,7 +305,11 @@ export default function SwapModule() {
           <div className="flex items-center justify-between">
             <p>Liquidity Provider Fee</p>
             <p>
-              {(0.003 * +initAmount).toFixed(6)} {initToken}
+              {(0.003 * +initAmount).toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 6,
+              })}{" "}
+              {initToken}
             </p>
           </div>
         </div>

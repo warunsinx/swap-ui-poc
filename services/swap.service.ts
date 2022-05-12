@@ -10,46 +10,63 @@ import {
   parseEther,
   formatEther,
 } from "ethers/lib/utils";
-import * as ethers from "ethers";
 import { NAMED_TOKENS } from "../constants/tokens";
 import { getSigner } from "../utils/getProvider";
 
-const getAmountsOut = async (
+const getAmountOut = async (
   amountIn: number,
-  token1: string,
-  token2: string
+  reserveIn: number,
+  reserveOut: number
 ) => {
-  const routerContract = swapRouterContract(CONTRACT_ADDRESS.SwapRouter);
-  try {
-    const amountOut = await routerContract.getAmountsOut(
-      parseUnits(amountIn.toString(), NAMED_TOKENS[token1].decimals),
-      [ADDRESS_LIST[token1], ADDRESS_LIST[token2]]
-    );
-    return ethers.utils.formatUnits(
-      amountOut[1],
-      NAMED_TOKENS[token2].decimals
-    );
-  } catch (e) {
-    return "0";
-  }
+  const fee = 1 - 0.3 / 100;
+  const amountInWithFee = amountIn * fee;
+  const numerator = amountInWithFee * reserveOut;
+  const denominator = reserveIn + amountInWithFee;
+  return numerator / denominator;
 };
 
-const getAmountsIn = async (
+const getAmountIn = async (
   amountOut: number,
-  token1: string,
-  token2: string
+  reserveIn: number,
+  reserveOut: number
 ) => {
-  const routerContract = swapRouterContract(CONTRACT_ADDRESS.SwapRouter);
-  try {
-    const amountIn = await routerContract.getAmountsIn(
-      parseUnits(amountOut.toString(), NAMED_TOKENS[token2].decimals),
-      [ADDRESS_LIST[token1], ADDRESS_LIST[token2]]
-    );
-    return ethers.utils.formatUnits(amountIn[0], NAMED_TOKENS[token1].decimals);
-  } catch (e) {
-    return "0";
-  }
+  const fee = 1 - 0.3 / 100;
+  const numerator = reserveIn * amountOut;
+  const denominator = (reserveOut - amountOut) * fee;
+  return numerator / denominator;
 };
+
+// const getAmountsOut = async (amountIn: number, tokenPath: string[]) => {
+//   const routerContract = swapRouterContract(CONTRACT_ADDRESS.SwapRouter);
+//   try {
+//     const amountOut = await routerContract.getAmountsOut(
+//       parseUnits(amountIn.toString(), NAMED_TOKENS[tokenPath[0]].decimals),
+//       tokenPath.map((token) => ADDRESS_LIST[token])
+//     );
+//     return ethers.utils.formatUnits(
+//       amountOut[1],
+//       NAMED_TOKENS[tokenPath[tokenPath.length - 1]].decimals
+//     );
+//   } catch (e) {
+//     return "0";
+//   }
+// };
+
+// const getAmountsIn = async (amountOut: number, tokenPath: string[]) => {
+//   const routerContract = swapRouterContract(CONTRACT_ADDRESS.SwapRouter);
+//   try {
+//     const amountIn = await routerContract.getAmountsIn(
+//       parseUnits(amountOut.toString(), NAMED_TOKENS[tokenPath[1]].decimals),
+//       tokenPath.map((token) => ADDRESS_LIST[token])
+//     );
+//     return ethers.utils.formatUnits(
+//       amountIn[0],
+//       NAMED_TOKENS[tokenPath[0]].decimals
+//     );
+//   } catch (e) {
+//     return "0";
+//   }
+// };
 
 const swapExactTokensForTokens = async (
   amountIn: number,
@@ -134,10 +151,9 @@ const getPooledToken = async (
   return [pToken1, pToken2, poolShare, +reserve[0], +reserve[1]];
 };
 
-const getSpotPrice = async (token1: string, token2: string) => {
+const getSpotPrice = async (reserve1: number, reserve2: number) => {
   try {
-    const reserve = await getReserve(token1, token2);
-    return +reserve[1] / +reserve[0];
+    return reserve2 / reserve1;
   } catch (err) {
     return -1;
   }
@@ -227,8 +243,8 @@ const getPairAddr = async (token1: string, token2: string) => {
 };
 
 const swapService = {
-  getAmountsOut,
-  getAmountsIn,
+  // getAmountsOut,
+  // getAmountsIn,
   swapExactTokensForTokens,
   swapExactETHForTokens,
   getSpotPrice,
@@ -239,6 +255,8 @@ const swapService = {
   getShareOfPool,
   getPooledToken,
   getReserve,
+  getAmountOut,
+  getAmountIn,
 };
 
 export default swapService;
