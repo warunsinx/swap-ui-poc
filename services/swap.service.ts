@@ -10,7 +10,7 @@ import {
   parseEther,
   formatEther,
 } from "ethers/lib/utils";
-import { NAMED_TOKENS } from "../constants/tokens";
+import { NAMED_TOKENS } from "../constants/swapTokens";
 import { getSigner } from "../utils/getProvider";
 
 const getAmountOut = async (

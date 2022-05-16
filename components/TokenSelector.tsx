@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/solid";
-import { SWAP_TOKENS, NAMED_TOKENS } from "../constants/tokens";
+import { SWAP_TOKENS, NAMED_TOKENS } from "../constants/swapTokens";
 import useWalletStore from "../stores/WalletStore";
 import Image from "next/image";
 
@@ -15,7 +15,7 @@ export default function TokenSelector({
   tokens: typeof SWAP_TOKENS;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const balances = useWalletStore((state) => state.balances);
+  const balances = useWalletStore((state) => state.walletBalances);
 
   return (
     <>

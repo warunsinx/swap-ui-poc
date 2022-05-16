@@ -4,11 +4,14 @@ import ConnectWalletButton from "./ConnectWalletButton";
 import { useState, useEffect } from "react";
 import SwapSettingButton from "./SwapSettingButton";
 import swapService from "../services/swap.service";
-import { SWAP_TOKENS } from "../constants/tokens";
+import { SWAP_TOKENS } from "../constants/swapTokens";
 import useWalletStore from "../stores/WalletStore";
 import CustomButton from "./CustomButton";
 import tokenService from "../services/token.service";
 import to from "await-to-js";
+import localService from "../services/local.service";
+import STORAGE_KEYS from "../constants/storageKey";
+import swapNextService from "../services/swap.next.service";
 
 export default function SwapModule() {
   const [initToken, setInitToken] = useState("");
@@ -24,12 +27,13 @@ export default function SwapModule() {
   const [lastInputted, setLastInputted] = useState(0);
   const [reserves, setReserves] = useState([0, 0]);
 
+  const walletType = useWalletStore((state) => state.walletType);
+  const sessionLoading = useWalletStore((state) => state.sessionLoading);
   const wallet = useWalletStore((state) => state.address);
-  const allowances = useWalletStore((state) => state.allowances);
-  const balances = useWalletStore((state) => state.balances);
-
-  const loadAllowances = useWalletStore((state) => state.loadAllowances);
-  const loadBalances = useWalletStore((state) => state.loadTokenBalances);
+  const balances = useWalletStore((state) => state.walletBalances);
+  const allowances = useWalletStore((state) => state.walletAllowances);
+  const loadAllowances = useWalletStore((state) => state.loadWalletAllowances);
+  const loadBalances = useWalletStore((state) => state.loadWalletBalances);
 
   const handleSwap = async () => {
     setSwapLoad(true);
@@ -38,7 +42,20 @@ export default function SwapModule() {
     const minAmountOut = +finalAmount - (+finalAmount * slipageTol) / 100;
 
     try {
-      if (initToken === "KUB") {
+      if (walletType === "bitkub-next") {
+        const accessToken = localService.getItem(STORAGE_KEYS.BK_ACCESS_TOKEN);
+        const tx = await swapNextService.swapExactTokensForTokens(
+          accessToken,
+          +initAmount,
+          minAmountOut,
+          [initToken, finalToken],
+          wallet,
+          deadline
+        );
+        await tx.wait();
+        console.log("?");
+        console.log({ tx });
+      } else if (initToken === "KUB") {
         const tx = await swapService.swapExactETHForTokens(
           +initAmount,
           minAmountOut,
@@ -59,6 +76,7 @@ export default function SwapModule() {
         await tx.wait();
       }
     } catch (err) {
+      console.log(err);
       setSwapLoad(false);
     }
     loadBalances();
@@ -126,7 +144,9 @@ export default function SwapModule() {
   }, [initToken, finalToken, slipageTol]);
 
   const renderButton = () => {
-    if (!wallet) {
+    if (sessionLoading) {
+      return <CustomButton isLoading={true} text="" disabled={true} />;
+    } else if (!wallet) {
       // check wallet
       if (invalidPair) {
         // check invalid pair
@@ -146,6 +166,7 @@ export default function SwapModule() {
         <CustomButton text={`Insufficient ${initToken}`} disabled={true} />
       );
     } else if (
+      walletType === "metamask" &&
       initToken &&
       finalToken &&
       initAmount &&
@@ -228,7 +249,7 @@ export default function SwapModule() {
               calculateSwap(true, e.target.value);
             }}
             type="number"
-            className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500"
+            className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500 focus:outline-none focus:ring-0"
           />
           <div className="absolute top-0 bottom-0 right-0">
             <TokenSelector
@@ -257,7 +278,7 @@ export default function SwapModule() {
               calculateSwap(false, e.target.value);
             }}
             type="number"
-            className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500"
+            className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500 focus:outline-none focus:ring-0"
           />
           <div className="absolute top-0 bottom-0 right-0">
             <TokenSelector

@@ -67,7 +67,7 @@ export default function SwapSettingButton({
                       value={tol}
                       onChange={(e) => setTol(+e.target.value)}
                       type="number"
-                      className="w-full border-2 border-blue-400 rounded-lg h-12 px-5 text-blue-500"
+                      className="w-full border-2 border-blue-400 rounded-lg h-12 px-5 text-blue-500 focus:outline-none focus:ring-0"
                     />
                     <p className="text-2xl text-blue-500">%</p>
                   </div>
@@ -79,7 +79,7 @@ export default function SwapSettingButton({
                       value={deadline}
                       onChange={(e) => setDeadline(+e.target.value)}
                       type="number"
-                      className="w-full border-2 border-blue-400 rounded-lg h-12 px-5 text-blue-500"
+                      className="w-full border-2 border-blue-400 rounded-lg h-12 px-5 text-blue-500 focus:outline-none focus:ring-0"
                     />
                     <p className="text-2xl text-blue-500">Minute</p>
                   </div>

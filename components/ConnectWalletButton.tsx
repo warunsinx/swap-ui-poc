@@ -7,6 +7,7 @@ export default function ConnectWalletButton() {
   const [isOpen, setIsOpen] = useState(false);
 
   const connectMetamask = useWalletStore((state) => state.connectMetamask);
+  const connectBitkubNext = useWalletStore((state) => state.connectBitkubNext);
 
   const handleMetamask = async () => {
     await connectMetamask();
@@ -14,6 +15,7 @@ export default function ConnectWalletButton() {
   };
 
   const handleBitkubNext = async () => {
+    await connectBitkubNext();
     setIsOpen(false);
   };
 

@@ -6,10 +6,17 @@ import useWalletStore from "../stores/WalletStore";
 
 export default function AppView() {
   const [module, setModule] = useState<"swap" | "pool">("swap");
+  const loadSession = useWalletStore((state) => state.loadSession);
   const walletAddress = useWalletStore((state) => state.address);
-  const loadTokenBalances = useWalletStore((state) => state.loadTokenBalances);
-  const loadAllowances = useWalletStore((state) => state.loadAllowances);
-  const loadLiquidities = useWalletStore((state) => state.loadLiquidiities);
+  const loadTokenBalances = useWalletStore((state) => state.loadWalletBalances);
+  const loadAllowances = useWalletStore((state) => state.loadWalletAllowances);
+  const loadLiquidities = useWalletStore(
+    (state) => state.loadWalletLiquidiities
+  );
+
+  useEffect(() => {
+    loadSession();
+  }, []);
 
   useEffect(() => {
     if (walletAddress) {

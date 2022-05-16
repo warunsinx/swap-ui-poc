@@ -22,11 +22,13 @@ export default function PoolListItem({
   const [removeLoad, setRemoveLoad] = useState(false);
 
   const wallet = useWalletStore((state) => state.address);
-  const allowances = useWalletStore((state) => state.allowances);
-  const liquidities = useWalletStore((state) => state.liquidities);
-  const loadAllowances = useWalletStore((state) => state.loadAllowances);
-  const loadBalances = useWalletStore((state) => state.loadTokenBalances);
-  const loadLiquidiities = useWalletStore((state) => state.loadLiquidiities);
+  const allowances = useWalletStore((state) => state.walletAllowances);
+  const liquidities = useWalletStore((state) => state.walletLiquidities);
+  const loadAllowances = useWalletStore((state) => state.loadWalletAllowances);
+  const loadBalances = useWalletStore((state) => state.loadWalletBalances);
+  const loadLiquidiities = useWalletStore(
+    (state) => state.loadWalletLiquidiities
+  );
   const [poolData, setPoolData] = useState([0, 0, 0]);
 
   const getPoolData = async () => {
@@ -182,7 +184,7 @@ export default function PoolListItem({
                     min="0"
                     max="100"
                     step="1"
-                    className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                    className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-0"
                   />
                   <div className="flex items-center justify-between space-x-4 mt-3">
                     {[25, 50, 75, 100].map((v, i) => (

@@ -1,9 +1,9 @@
 import { ContractCallContext } from "ethereum-multicall";
 import {
-  SWAP_TOKENS as ALL_TOKENS,
+  SWAP_TOKENS,
   NAMED_TOKENS,
   POOL_TOKENS,
-} from "../constants/tokens";
+} from "../constants/swapTokens";
 import { ADDRESS_LIST } from "../constants/addressList";
 import { formatEther, formatUnits } from "ethers/lib/utils";
 import { getMulticall as multicall } from "../utils/getMulticall";
@@ -12,7 +12,7 @@ import { TestKUSDT__factory } from "../typechain/factories/TestKUSDT__factory";
 import { DiamonPair__factory } from "../typechain/factories/DiamonPair__factory";
 
 const getTokenBalances = async (address: string) => {
-  const tokens = ALL_TOKENS.filter((token) => token.symbol !== "KUB").map(
+  const tokens = SWAP_TOKENS.filter((token) => token.symbol !== "KUB").map(
     (token) => token.symbol
   );
   try {
@@ -53,19 +53,19 @@ const getTokenBalances = async (address: string) => {
   }
 };
 
-const getAllowances = async (address: string) => {
-  const tokens = ALL_TOKENS.map((token) => token.symbol).filter(
+const getSwapTokenAllowances = async (address: string) => {
+  const tokens = SWAP_TOKENS.map((token) => token.symbol).filter(
     (token) => !["KUB"].includes(token)
   );
   try {
     const contractCallContext: ContractCallContext[] = tokens.map((token) => ({
       reference: token,
       contractAddress: ADDRESS_LIST[token],
-      abi: token === "KUSDT" ? TestKUSDT__factory.abi : KAP20__factory.abi,
+      abi: TestKUSDT__factory.abi,
       calls: [
         {
           reference: token,
-          methodName: token === "KUSDT" ? "allowances" : "allowance",
+          methodName: "allowances",
           methodParameters: [address, ADDRESS_LIST["SwapRouter"]],
         },
       ],
@@ -143,7 +143,7 @@ const getPoolTokenAllowances = async (address: string) => {
     const contractCallContext: ContractCallContext[] = tokens.map((token) => ({
       reference: token,
       contractAddress: ADDRESS_LIST[token],
-      abi: token === "KUSDT" ? TestKUSDT__factory.abi : KAP20__factory.abi,
+      abi: KAP20__factory.abi,
       calls: [
         {
           reference: token,
@@ -174,11 +174,11 @@ const getPoolTokenAllowances = async (address: string) => {
   }
 };
 
-const multicallService = {
+const swapMulticallService = {
   getTokenBalances,
-  getAllowances,
+  getSwapTokenAllowances,
   getPoolTokenBalances,
   getPoolTokenAllowances,
 };
 
-export default multicallService;
+export default swapMulticallService;

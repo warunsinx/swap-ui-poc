@@ -4,13 +4,16 @@ import CustomButton from "./CustomButton";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState, useEffect } from "react";
 import TokenSelector from "./TokenSelector";
-import { SWAP_TOKENS, POOL_TOKENS } from "../constants/tokens";
+import { SWAP_TOKENS, POOL_TOKENS } from "../constants/swapTokens";
 import { PlusCircleIcon } from "@heroicons/react/solid";
 import tokenService from "../services/token.service";
 import swapService from "../services/swap.service";
 import SwapSettingButton from "./SwapSettingButton";
 import PoolListItem from "./PoolListItem";
 import to from "await-to-js";
+import localService from "../services/local.service";
+import swapNextService from "../services/swap.next.service";
+import STORAGE_KEYS from "../constants/storageKey";
 
 export default function PoolModule() {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,13 +30,17 @@ export default function PoolModule() {
   const [lastInputted, setLastInputted] = useState(0);
   const [reserves, setReserves] = useState([0, 0]);
 
+  const walletType = useWalletStore((state) => state.walletType);
+  const sessionLoading = useWalletStore((state) => state.sessionLoading);
   const wallet = useWalletStore((state) => state.address);
-  const allowances = useWalletStore((state) => state.allowances);
-  const balances = useWalletStore((state) => state.balances);
-  const liquidities = useWalletStore((state) => state.liquidities);
-  const loadAllowances = useWalletStore((state) => state.loadAllowances);
-  const loadBalances = useWalletStore((state) => state.loadTokenBalances);
-  const loadLiquidiities = useWalletStore((state) => state.loadLiquidiities);
+  const balances = useWalletStore((state) => state.walletBalances);
+  const allowances = useWalletStore((state) => state.walletAllowances);
+  const liquidities = useWalletStore((state) => state.walletLiquidities);
+  const loadAllowances = useWalletStore((state) => state.loadWalletAllowances);
+  const loadBalances = useWalletStore((state) => state.loadWalletBalances);
+  const loadLiquidiities = useWalletStore(
+    (state) => state.loadWalletLiquidiities
+  );
 
   const handleAddPool = async () => {
     setAddLoad(true);
@@ -41,7 +48,25 @@ export default function PoolModule() {
       Math.floor(new Date().getTime() / 1000) + deadlineMinute * 60;
 
     try {
-      if (initToken === "KUB" || finalToken === "KUB") {
+      if (walletType === "bitkub-next") {
+        const amountTokenAMin = +initAmount - (+initAmount * slipageTol) / 100;
+        const amountTokenBMin =
+          +finalAmount - (+finalAmount * slipageTol) / 100;
+        const accessToken = localService.getItem(STORAGE_KEYS.BK_ACCESS_TOKEN);
+        const tx = await swapNextService.addLiquidity(
+          accessToken,
+          initToken,
+          finalToken,
+          initAmount,
+          finalAmount,
+          amountTokenAMin.toString(),
+          amountTokenBMin.toString(),
+          wallet,
+          deadline
+        );
+        await tx.wait();
+        console.log({ tx });
+      } else if (initToken === "KUB" || finalToken === "KUB") {
         if (initToken === "KUB") {
           const amountETHMin = +initAmount - (+initAmount * slipageTol) / 100;
           const amountTokenMin =
@@ -87,6 +112,7 @@ export default function PoolModule() {
         await tx.wait();
       }
     } catch (err) {
+      console.log(err);
       setAddLoad(false);
     }
     await loadLiquidiities();
@@ -145,7 +171,9 @@ export default function PoolModule() {
   }, [initToken, finalToken]);
 
   const renderButton = () => {
-    if (!wallet) {
+    if (sessionLoading) {
+      return <CustomButton isLoading={true} text="" disabled={true} />;
+    } else if (!wallet) {
       // check wallet
       if (invalidPair) {
         // check invalid pair
@@ -171,6 +199,7 @@ export default function PoolModule() {
           <CustomButton text={`Insufficient ${finalToken}`} disabled={true} />
         );
     } else if (
+      walletType === "metamask" &&
       initToken &&
       finalToken &&
       initAmount &&
@@ -280,7 +309,7 @@ export default function PoolModule() {
                         calculatePool(true, e.target.value);
                       }}
                       type="number"
-                      className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500"
+                      className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500 focus:outline-none focus:ring-0"
                     />
                     <div className="absolute top-0 bottom-0 right-0">
                       <TokenSelector
@@ -305,7 +334,7 @@ export default function PoolModule() {
                         calculatePool(false, e.target.value);
                       }}
                       type="number"
-                      className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500"
+                      className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500 focus:outline-none focus:ring-0"
                     />
                     <div className="absolute top-0 bottom-0 right-0">
                       <TokenSelector
@@ -370,7 +399,9 @@ export default function PoolModule() {
             setDeadline={setDeadlineMinute}
           />
         </div>
-        {!wallet ? (
+        {sessionLoading ? (
+          <CustomButton isLoading={true} text="" disabled={true} />
+        ) : !wallet ? (
           <ConnectWalletButton />
         ) : (
           <CustomButton text="Add Pool" onClick={() => setIsOpen(true)} />

@@ -1,0 +1,6 @@
+export enum TxStatus {
+  BROADCASTED = "BROADCASTED",
+  SUCCESS = "SUCCESS",
+  PENDING = "PENDING",
+  FAILURE = "FAILURE",
+}
