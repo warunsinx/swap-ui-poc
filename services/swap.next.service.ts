@@ -90,7 +90,7 @@ const swapExactTokensForTokens = async (
       ).toString(),
       tokenPath.map((token) => ADDRESS_LIST[token]),
       to,
-      deadline,
+      deadline.toString(),
     ];
     const queueId = await requestApproval(
       accessToken,
@@ -131,13 +131,13 @@ const removeLiquidity = async (
         NAMED_TOKENS[tokenB].decimals
       ).toString(),
       to,
-      deadline,
+      deadline.toString(),
     ];
     const queueId = await requestApproval(
       accessToken,
       ADDRESS_LIST["FinBroker"],
       methodName,
-      methodParams as any
+      methodParams
     );
     const tx = await waitBKTx(accessToken, queueId);
     return wrapTx(tx, accessToken, queueId);

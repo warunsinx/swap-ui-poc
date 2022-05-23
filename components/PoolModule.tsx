@@ -14,6 +14,7 @@ import to from "await-to-js";
 import localService from "../services/local.service";
 import swapNextService from "../services/swap.next.service";
 import STORAGE_KEYS from "../constants/storageKey";
+import { delay } from "../utils/delay";
 
 export default function PoolModule() {
   const [isOpen, setIsOpen] = useState(false);
@@ -65,7 +66,7 @@ export default function PoolModule() {
           deadline
         );
         await tx.wait();
-        console.log({ tx });
+        await delay(5000);
       } else if (initToken === "KUB" || finalToken === "KUB") {
         if (initToken === "KUB") {
           const amountETHMin = +initAmount - (+initAmount * slipageTol) / 100;
@@ -413,10 +414,10 @@ export default function PoolModule() {
           ) : (
             <div className="w-full">
               {POOL_TOKENS.filter(
-                (token) => +liquidities[token.symbol] > 0.0000000000000001
+                (token) => +liquidities[token.symbol] > 0.00000000001
               ).length ? (
                 POOL_TOKENS.filter(
-                  (token) => +liquidities[token.symbol] > 0.0000000000000001
+                  (token) => +liquidities[token.symbol] > 0.00000000001
                 ).map((token, i) => (
                   <PoolListItem
                     slipageTol={slipageTol}

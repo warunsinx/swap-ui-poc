@@ -12,6 +12,7 @@ import to from "await-to-js";
 import localService from "../services/local.service";
 import STORAGE_KEYS from "../constants/storageKey";
 import swapNextService from "../services/swap.next.service";
+import { delay } from "../utils/delay";
 
 export default function SwapModule() {
   const [initToken, setInitToken] = useState("");
@@ -53,8 +54,7 @@ export default function SwapModule() {
           deadline
         );
         await tx.wait();
-        console.log("?");
-        console.log({ tx });
+        await delay(5000);
       } else if (initToken === "KUB") {
         const tx = await swapService.swapExactETHForTokens(
           +initAmount,

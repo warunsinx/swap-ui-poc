@@ -5,6 +5,10 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 import CustomButton from "./CustomButton";
 import tokenService from "../services/token.service";
 import swapService from "../services/swap.service";
+import localService from "../services/local.service";
+import STORAGE_KEYS from "../constants/storageKey";
+import swapNextService from "../services/swap.next.service";
+import { delay } from "../utils/delay";
 
 export default function PoolListItem({
   deadlineMinute,
@@ -21,6 +25,7 @@ export default function PoolListItem({
   const [approveLoad, setApproveLoad] = useState(false);
   const [removeLoad, setRemoveLoad] = useState(false);
 
+  const walletType = useWalletStore((state) => state.walletType);
   const wallet = useWalletStore((state) => state.address);
   const allowances = useWalletStore((state) => state.walletAllowances);
   const liquidities = useWalletStore((state) => state.walletLiquidities);
@@ -49,28 +54,47 @@ export default function PoolListItem({
 
   const handleRemovePool = async () => {
     setRemoveLoad(true);
+    const _percentRemove = Math.min(+percentRemove, 99.99999999999999);
     const deadline =
       Math.floor(new Date().getTime() / 1000) + deadlineMinute * 60;
     const liquiditiesRemove =
-      (+liquidities[token.symbol] * +percentRemove) / 100;
+      (+liquidities[token.symbol] * _percentRemove) / 100;
     const minAmountA =
-      +((+percentRemove / 100) * poolData[0]) -
-      (+((+percentRemove / 100) * poolData[0]) * slipageTol) / 100;
+      +((_percentRemove / 100) * poolData[0]) -
+      (+((_percentRemove / 100) * poolData[0]) * slipageTol) / 100;
     const minAmountB =
-      +((+percentRemove / 100) * poolData[1]) -
-      (+((+percentRemove / 100) * poolData[1]) * slipageTol) / 100;
+      +((_percentRemove / 100) * poolData[1]) -
+      (+((_percentRemove / 100) * poolData[1]) * slipageTol) / 100;
 
     try {
-      await swapService.removeLiquidity(
-        token.token1,
-        token.token2,
-        liquiditiesRemove.toString(),
-        minAmountA.toString(),
-        minAmountB.toString(),
-        wallet,
-        deadline
-      );
+      if (walletType === "bitkub-next") {
+        const accessToken = localService.getItem(STORAGE_KEYS.BK_ACCESS_TOKEN);
+        const tx = await swapNextService.removeLiquidity(
+          accessToken,
+          token.token1,
+          token.token2,
+          liquiditiesRemove.toString(),
+          minAmountA.toString(),
+          minAmountB.toString(),
+          wallet,
+          deadline
+        );
+        await tx.wait();
+        await delay(5000);
+      } else {
+        const tx = await swapService.removeLiquidity(
+          token.token1,
+          token.token2,
+          liquiditiesRemove.toString(),
+          minAmountA.toString(),
+          minAmountB.toString(),
+          wallet,
+          deadline
+        );
+        await tx.wait();
+      }
     } catch (err) {
+      console.log(err);
       setRemoveLoad(false);
     }
     await loadBalances();
@@ -226,7 +250,7 @@ export default function PoolListItem({
                     </p>
                   </div>
                 </div>
-                {+allowances[token.symbol] <= 0 ? (
+                {walletType === "metamask" && +allowances[token.symbol] <= 0 ? (
                   <CustomButton
                     text={`Approve ${token.symbol}`}
                     disabled={approveLoad}
