@@ -141,7 +141,7 @@ export default function SwapModule() {
     } else if (initToken && finalToken && +finalAmount > 0) {
       calculateSwap(false, finalAmount);
     }
-  }, [initToken, finalToken, slipageTol]);
+  }, [initToken, finalToken, slipageTol, reserves]);
 
   const renderButton = () => {
     if (sessionLoading) {

@@ -169,7 +169,7 @@ export default function PoolModule() {
     } else if (initToken && finalToken && +finalAmount > 0) {
       calculatePool(false, finalAmount);
     }
-  }, [initToken, finalToken]);
+  }, [initToken, finalToken, slipageTol, reserves]);
 
   const renderButton = () => {
     if (sessionLoading) {
