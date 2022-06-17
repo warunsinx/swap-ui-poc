@@ -220,7 +220,10 @@ export default function SwapModule() {
     const [err, res] = await to(
       swapService.getReserve(_initToken, _finalToken)
     );
-    if (err) return setInvalidPair(true);
+    if (err) {
+      setReserves([0, 0]);
+      return setInvalidPair(true);
+    }
     setInvalidPair(false);
     const [r0, r1] = res;
     setReserves([+r0, +r1]);

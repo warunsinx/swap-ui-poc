@@ -261,6 +261,7 @@ export default function PoolModule() {
     }
     const [r0, r1] = res;
     setReserves([+r0, +r1]);
+    setInvalidPair(false);
   };
 
   return (
