@@ -2,7 +2,15 @@ export const SWAP_TOKENS = [
   {
     symbol: "KUSDT",
     name: "KUSDT",
-    image: "/images/usdt-logo.png",
+    image: "/static/images/usdt-logo.png",
+    remoteImg: ``,
+    decimals: 18,
+    fraction: 2,
+  },
+  {
+    symbol: "WE",
+    name: "WE",
+    image: "/static/images/weToken.png",
     remoteImg: ``,
     decimals: 18,
     fraction: 2,
@@ -10,7 +18,7 @@ export const SWAP_TOKENS = [
   {
     symbol: "KUSDC",
     name: "KUSDC",
-    image: "/images/usdc-logo.png",
+    image: "/static/images/weToken.png",
     remoteImg: ``,
     decimals: 18,
     fraction: 2,
@@ -23,6 +31,11 @@ export const POOL_TOKENS = [
     token1: "KUSDT",
     token2: "KUSDC",
   },
+  {
+    symbol: "KUSDT/WE",
+    token1: "KUSDT",
+    token2: "WE",
+  }
 ];
 
 // export const SWAP_TOKENS = [

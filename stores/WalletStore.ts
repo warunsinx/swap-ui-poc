@@ -77,13 +77,16 @@ const store = (set: any, get: any) => ({
       return null;
     }
   },
+
   connectBitkubNext: async () => {
     try {
       let refreshToken = localService.getItem(STORAGE_KEYS.BK_REFRESH_TOKEN);
+      console.log("refreshToken",refreshToken)
       let accessToken = localService.getItem(STORAGE_KEYS.BK_ACCESS_TOKEN);
-
+      console.log("accessToken",accessToken)
       if (refreshToken) {
         const res = await bitkubNextService.extendToken(refreshToken);
+        console.log("In IF")
 
         refreshToken = res.refresh_token;
         accessToken = res.access_token;
@@ -114,6 +117,8 @@ const store = (set: any, get: any) => ({
 
       const res = await bitkubNextService.loadAccountInfo(accessToken);
       const account = res.data.wallet_address;
+      // console.log("res",res)
+      // console.log("account",account)
       const phone = res.data.phone;
 
       set({

@@ -1,102 +1,102 @@
-import { ArrowCircleDownIcon } from "@heroicons/react/solid";
-import TokenSelector from "./TokenSelector";
-import ConnectWalletButton from "./ConnectWalletButton";
-import { useState, useEffect } from "react";
-import SwapSettingButton from "./SwapSettingButton";
-import swapService from "../services/swap.service";
-import { SWAP_TOKENS } from "../constants/swapTokens";
-import useWalletStore from "../stores/WalletStore";
-import CustomButton from "./CustomButton";
-import tokenService from "../services/token.service";
-import to from "await-to-js";
-import localService from "../services/local.service";
-import STORAGE_KEYS from "../constants/storageKey";
-import swapNextService from "../services/swap.next.service";
-import { delay } from "../utils/delay";
+import { ArrowCircleDownIcon } from '@heroicons/react/solid'
+import TokenSelector from './TokenSelector'
+import ConnectWalletButton from './ConnectWalletButton'
+import { useState, useEffect } from 'react'
+import SwapSettingButton from './SwapSettingButton'
+import swapService from '../services/swap.service'
+import { SWAP_TOKENS } from '../constants/swapTokens'
+import useWalletStore from '../stores/WalletStore'
+import CustomButton from './CustomButton'
+import tokenService from '../services/token.service'
+import to from 'await-to-js'
+import localService from '../services/local.service'
+import STORAGE_KEYS from '../constants/storageKey'
+import swapNextService from '../services/swap.next.service'
+import { delay } from '../utils/delay'
 
 export default function SwapModule() {
-  const [initToken, setInitToken] = useState("");
-  const [finalToken, setFinalToken] = useState("");
-  const [initAmount, setInitAmount] = useState("");
-  const [finalAmount, setFinalAmount] = useState("");
-  const [slipageTol, setSlipageTol] = useState(0.8);
-  const [deadlineMinute, setDeadlineMinute] = useState(20);
-  const [approveLoad, setApproveLoad] = useState(false);
-  const [swapLoad, setSwapLoad] = useState(false);
-  const [spotPrice, setSpotPrice] = useState(0);
-  const [invalidPair, setInvalidPair] = useState(false);
-  const [lastInputted, setLastInputted] = useState(0);
-  const [reserves, setReserves] = useState([0, 0]);
+  const [initToken, setInitToken] = useState('')
+  const [finalToken, setFinalToken] = useState('')
+  const [initAmount, setInitAmount] = useState('')
+  const [finalAmount, setFinalAmount] = useState('')
+  const [slipageTol, setSlipageTol] = useState(0.8)
+  const [deadlineMinute, setDeadlineMinute] = useState(20)
+  const [approveLoad, setApproveLoad] = useState(false)
+  const [swapLoad, setSwapLoad] = useState(false)
+  const [spotPrice, setSpotPrice] = useState(0)
+  const [invalidPair, setInvalidPair] = useState(false)
+  const [lastInputted, setLastInputted] = useState(0)
+  const [reserves, setReserves] = useState([0, 0])
 
-  const walletType = useWalletStore((state) => state.walletType);
-  const sessionLoading = useWalletStore((state) => state.sessionLoading);
-  const wallet = useWalletStore((state) => state.address);
-  const balances = useWalletStore((state) => state.walletBalances);
-  const allowances = useWalletStore((state) => state.walletAllowances);
-  const loadAllowances = useWalletStore((state) => state.loadWalletAllowances);
-  const loadBalances = useWalletStore((state) => state.loadWalletBalances);
+  const walletType = useWalletStore((state) => state.walletType)
+  const sessionLoading = useWalletStore((state) => state.sessionLoading)
+  const wallet = useWalletStore((state) => state.address)
+  const balances = useWalletStore((state) => state.walletBalances)
+  const allowances = useWalletStore((state) => state.walletAllowances)
+  const loadAllowances = useWalletStore((state) => state.loadWalletAllowances)
+  const loadBalances = useWalletStore((state) => state.loadWalletBalances)
 
   const handleSwap = async () => {
-    setSwapLoad(true);
+    setSwapLoad(true)
     const deadline =
-      Math.floor(new Date().getTime() / 1000) + deadlineMinute * 60;
-    const minAmountOut = +finalAmount - (+finalAmount * slipageTol) / 100;
+      Math.floor(new Date().getTime() / 1000) + deadlineMinute * 60
+    const minAmountOut = +finalAmount - (+finalAmount * slipageTol) / 100
 
     try {
-      if (walletType === "bitkub-next") {
-        const accessToken = localService.getItem(STORAGE_KEYS.BK_ACCESS_TOKEN);
+      if (walletType === 'bitkub-next') {
+        const accessToken = localService.getItem(STORAGE_KEYS.BK_ACCESS_TOKEN)
         const tx = await swapNextService.swapExactTokensForTokens(
           accessToken,
           +initAmount,
           minAmountOut,
           [initToken, finalToken],
           wallet,
-          deadline
-        );
-        await tx.wait();
-        await delay(5000);
-      } else if (initToken === "KUB") {
+          deadline,
+        )
+        await tx.wait()
+        await delay(5000)
+      } else if (initToken === 'KUB') {
         const tx = await swapService.swapExactETHForTokens(
           +initAmount,
           minAmountOut,
-          ["KKUB", finalToken],
+          ['KKUB', finalToken],
           wallet,
-          deadline
-        );
-        await tx.wait();
+          deadline,
+        )
+        await tx.wait()
       } else {
-        const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
+        const _finalToken = finalToken === 'KUB' ? 'KKUB' : finalToken
         const tx = await swapService.swapExactTokensForTokens(
           +initAmount,
           minAmountOut,
           [initToken, _finalToken],
           wallet,
-          deadline
-        );
-        await tx.wait();
+          deadline,
+        )
+        await tx.wait()
       }
     } catch (err) {
-      console.log(err);
-      setSwapLoad(false);
+      console.log(err)
+      setSwapLoad(false)
     }
-    loadBalances();
-    setSwapLoad(false);
-  };
+    loadBalances()
+    setSwapLoad(false)
+  }
 
   const handleApprove = async (token: string) => {
-    setApproveLoad(true);
+    setApproveLoad(true)
     try {
-      await tokenService.approve(token).then((tx) => tx?.wait());
+      await tokenService.approve(token).then((tx) => tx?.wait())
     } catch (err) {
-      setApproveLoad(false);
+      setApproveLoad(false)
     }
-    loadAllowances();
-    setApproveLoad(false);
-  };
+    loadAllowances()
+    setApproveLoad(false)
+  }
 
   const calculateSwap = async (calculateOut: boolean = true, value: string) => {
-    const _initToken = initToken === "KUB" ? "KKUB" : initToken;
-    const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
+    const _initToken = initToken === 'KUB' ? 'KKUB' : initToken
+    const _finalToken = finalToken === 'KUB' ? 'KKUB' : finalToken
 
     if (calculateOut) {
       // const _finalAmount = await swapService.getAmountsOut(+value, [
@@ -106,55 +106,55 @@ export default function SwapModule() {
       const _finalAmount = await swapService.getAmountOut(
         +value,
         reserves[0],
-        reserves[1]
-      );
+        reserves[1],
+      )
       if (+_finalAmount > 0) {
-        setInvalidPair(false);
-        setFinalAmount(_finalAmount.toString());
+        setInvalidPair(false)
+        setFinalAmount(_finalAmount.toString())
         const _spotPrice = await swapService.getSpotPrice(
           reserves[0],
-          reserves[1]
-        );
-        setSpotPrice(_spotPrice);
-      } else return setInvalidPair(true);
+          reserves[1],
+        )
+        setSpotPrice(_spotPrice)
+      } else return setInvalidPair(true)
     } else {
       const _initAmount = await swapService.getAmountIn(
         +value,
         reserves[0],
-        reserves[1]
-      );
+        reserves[1],
+      )
       if (+_initAmount > 0) {
-        setInvalidPair(false);
-        setInitAmount(_initAmount.toString());
+        setInvalidPair(false)
+        setInitAmount(_initAmount.toString())
         const _spotPrice = await swapService.getSpotPrice(
           reserves[0],
-          reserves[1]
-        );
-        setSpotPrice(_spotPrice);
-      } else return setInvalidPair(true);
+          reserves[1],
+        )
+        setSpotPrice(_spotPrice)
+      } else return setInvalidPair(true)
     }
-  };
+  }
 
   useEffect(() => {
     if (initToken && finalToken && +initAmount > 0) {
-      calculateSwap(true, initAmount);
+      calculateSwap(true, initAmount)
     } else if (initToken && finalToken && +finalAmount > 0) {
-      calculateSwap(false, finalAmount);
+      calculateSwap(false, finalAmount)
     }
-  }, [initToken, finalToken, slipageTol, reserves]);
+  }, [initToken, finalToken, slipageTol, reserves])
 
   const renderButton = () => {
     if (sessionLoading) {
-      return <CustomButton isLoading={true} text="" disabled={true} />;
+      return <CustomButton isLoading={true} text="" disabled={true} />
     } else if (!wallet) {
       // check wallet
       if (invalidPair) {
         // check invalid pair
-        return <CustomButton text="Invalid Pair" disabled={true} />;
-      } else return <ConnectWalletButton />;
+        return <CustomButton text="Invalid Pair" disabled={true} />
+      } else return <ConnectWalletButton />
     } else if (invalidPair) {
       // check invalid pair
-      return <CustomButton text="Invalid Pair" disabled={true} />;
+      return <CustomButton text="Invalid Pair" disabled={true} />
     } else if (
       initToken &&
       finalToken &&
@@ -162,11 +162,9 @@ export default function SwapModule() {
       +initAmount > +balances[initToken]
     ) {
       // check balance
-      return (
-        <CustomButton text={`Insufficient ${initToken}`} disabled={true} />
-      );
+      return <CustomButton text={`Insufficient ${initToken}`} disabled={true} />
     } else if (
-      walletType === "metamask" &&
+      walletType === 'metamask' &&
       initToken &&
       finalToken &&
       initAmount &&
@@ -180,7 +178,7 @@ export default function SwapModule() {
           isLoading={approveLoad}
           onClick={() => handleApprove(initToken)}
         />
-      );
+      )
     } else {
       // check swap
       return (
@@ -197,37 +195,35 @@ export default function SwapModule() {
           isLoading={swapLoad}
           onClick={handleSwap}
         />
-      );
+      )
     }
-  };
+  }
 
   const calculatePriceImpact = () => {
-    const fee = 1 - 0.3 / 100;
-    const spot = spotPrice * fee;
-    const exec = +finalAmount / +initAmount;
-    return (((spot - exec) / spot) * 100 * fee).toFixed(2);
-  };
+    const fee = 1 - 0.3 / 100
+    const spot = spotPrice * fee
+    const exec = +finalAmount / +initAmount
+    return (((spot - exec) / spot) * 100 * fee).toFixed(2)
+  }
 
   useEffect(() => {
     if (initToken && finalToken) {
-      getReserve();
+      getReserve()
     }
-  }, [finalToken, initToken]);
+  }, [finalToken, initToken, allowances])
 
   const getReserve = async () => {
-    const _initToken = initToken === "KUB" ? "KKUB" : initToken;
-    const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
-    const [err, res] = await to(
-      swapService.getReserve(_initToken, _finalToken)
-    );
+    const _initToken = initToken === 'KUB' ? 'KKUB' : initToken
+    const _finalToken = finalToken === 'KUB' ? 'KKUB' : finalToken
+    const [err, res] = await to(swapService.getReserve(_initToken, _finalToken))
     if (err) {
-      setReserves([0, 0]);
-      return setInvalidPair(true);
+      setReserves([0, 0])
+      return setInvalidPair(true)
     }
-    setInvalidPair(false);
-    const [r0, r1] = res;
-    setReserves([+r0, +r1]);
-  };
+    setInvalidPair(false)
+    const [r0, r1]: any = res
+    setReserves([+r0, +r1])
+  }
 
   return (
     <>
@@ -247,9 +243,9 @@ export default function SwapModule() {
           <input
             value={initAmount}
             onChange={(e) => {
-              setLastInputted(0);
-              setInitAmount(e.target.value);
-              calculateSwap(true, e.target.value);
+              setLastInputted(0)
+              setInitAmount(e.target.value)
+              calculateSwap(true, e.target.value)
             }}
             type="number"
             className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500 focus:outline-none focus:ring-0"
@@ -257,7 +253,7 @@ export default function SwapModule() {
           <div className="absolute top-0 bottom-0 right-0">
             <TokenSelector
               tokens={SWAP_TOKENS.filter(
-                (token) => token.symbol !== finalToken
+                (token) => token.symbol !== finalToken,
               )}
               selectedToken={initToken}
               setSelectedToken={setInitToken}
@@ -266,9 +262,9 @@ export default function SwapModule() {
         </div>
         <ArrowCircleDownIcon
           onClick={() => {
-            setInitAmount(finalAmount);
-            setInitToken(finalToken);
-            setFinalToken(initToken);
+            setInitAmount(finalAmount)
+            setInitToken(finalToken)
+            setFinalToken(initToken)
           }}
           className="text-blue-500 w-8 h-8 my-3 mx-auto cursor-pointer"
         />
@@ -276,9 +272,9 @@ export default function SwapModule() {
           <input
             value={finalAmount}
             onChange={(e) => {
-              setLastInputted(1);
-              setFinalAmount(e.target.value);
-              calculateSwap(false, e.target.value);
+              setLastInputted(1)
+              setFinalAmount(e.target.value)
+              calculateSwap(false, e.target.value)
             }}
             type="number"
             className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500 focus:outline-none focus:ring-0"
@@ -289,14 +285,18 @@ export default function SwapModule() {
               selectedToken={finalToken}
               setSelectedToken={setFinalToken}
             />
+
           </div>
         </div>
+        {/* <div className="mt-10"> */}
         {renderButton()}
+        {/* </div> */}
+
         {finalAmount && !invalidPair && (
           <div className="flex justify-between items-center mt-3 text-sm font-medium text-gray-500">
             <p>Price</p>
             <p>
-              {(+initAmount / +finalAmount).toFixed(6)} {initToken} per{" "}
+              {(+initAmount / +finalAmount).toFixed(6)} {initToken} per{' '}
               {finalToken}
             </p>
           </div>
@@ -313,7 +313,7 @@ export default function SwapModule() {
               ).toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 4,
-              })}{" "}
+              })}{' '}
               {finalToken}
             </p>
           </div>
@@ -321,9 +321,9 @@ export default function SwapModule() {
             <p>Price Impact</p>
             <p>
               {+calculatePriceImpact() < 0.001
-                ? "< 0.01"
+                ? '< 0.01'
                 : calculatePriceImpact()}
-              {" %"}
+              {' %'}
             </p>
           </div>
           <div className="flex items-center justify-between">
@@ -332,12 +332,12 @@ export default function SwapModule() {
               {(0.003 * +initAmount).toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 6,
-              })}{" "}
+              })}{' '}
               {initToken}
             </p>
           </div>
         </div>
       )}
     </>
-  );
+  )
 }
