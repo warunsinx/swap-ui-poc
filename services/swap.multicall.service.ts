@@ -10,6 +10,7 @@ import { getMulticall as multicall } from "../utils/getMulticall";
 import { KAP20__factory } from "../typechain-tokens/factories/KAP20__factory";
 import { TestKUSDT__factory } from "../typechain/factories/TestKUSDT__factory";
 import { DiamonPair__factory } from "../typechain/factories/DiamonPair__factory";
+import { TestKAP20__factory } from "../typechain/factories/TestKAP20__factory";
 
 const getTokenBalances = async (address: string) => {
   const tokens = SWAP_TOKENS.filter((token) => token.symbol !== "KUB").map(
@@ -61,11 +62,11 @@ const getSwapTokenAllowances = async (address: string) => {
     const contractCallContext: ContractCallContext[] = tokens.map((token) => ({
       reference: token,
       contractAddress: ADDRESS_LIST[token],
-      abi: TestKUSDT__factory.abi,
+      abi: TestKAP20__factory.abi,
       calls: [
         {
           reference: token,
-          methodName: "allowances",
+          methodName: "allowance",
           methodParameters: [address, ADDRESS_LIST["SwapRouter"]],
         },
       ],

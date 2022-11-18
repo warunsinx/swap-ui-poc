@@ -307,7 +307,7 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "allowances",
+    name: "allowance",
     outputs: [
       {
         internalType: "uint256",
