@@ -49,6 +49,16 @@ export const POOL_TOKENS = [
     token1: "KKUB",
     token2: "KUSDT",
   },
+  {
+    symbol: "YES/KKUB",
+    token1: "YES",
+    token2: "KKUB",
+  },
+  {
+    symbol: "YES/KUSDC",
+    token1: "YES",
+    token2: "KUSDC",
+  },
 ];
 
 export const NAMED_TOKENS = SWAP_TOKENS.reduce((prev, cur) => {

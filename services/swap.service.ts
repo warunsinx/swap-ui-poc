@@ -242,7 +242,7 @@ const getPairAddr = async (token1: string, token2: string) => {
     ADDRESS_LIST[token1],
     ADDRESS_LIST[token2]
   );
-  console.log(pairAddr);
+  console.log({ token1, token2, pairAddr });
 };
 
 const swapService = {
