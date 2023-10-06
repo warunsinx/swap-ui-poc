@@ -1,5 +1,5 @@
 {
-  "name": "custom-swap-connector",
+  "name": "swap-ui-poc",
   "version": "0.1.0",
   "private": true,
   "scripts": {
