@@ -1,58 +1,59 @@
-import ConnectWalletButton from './ConnectWalletButton'
-import useWalletStore from '../stores/WalletStore'
-import CustomButton from './CustomButton'
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useState, useEffect } from 'react'
-import TokenSelector from './TokenSelector'
-import { SWAP_TOKENS, POOL_TOKENS } from '../constants/swapTokens'
-import { PlusCircleIcon } from '@heroicons/react/solid'
-import tokenService from '../services/token.service'
-import swapService from '../services/swap.service'
-import SwapSettingButton from './SwapSettingButton'
-import PoolListItem from './PoolListItem'
-import to from 'await-to-js'
-import localService from '../services/local.service'
-import swapNextService from '../services/swap.next.service'
-import STORAGE_KEYS from '../constants/storageKey'
-import { delay } from '../utils/delay'
+import ConnectWalletButton from "./ConnectWalletButton";
+import useWalletStore from "../stores/WalletStore";
+import CustomButton from "./CustomButton";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment, useState, useEffect } from "react";
+import TokenSelector from "./TokenSelector";
+import { SWAP_TOKENS, POOL_TOKENS } from "../constants/swapTokens";
+import { PlusCircleIcon } from "@heroicons/react/solid";
+import tokenService from "../services/token.service";
+import swapService from "../services/swap.service";
+import SwapSettingButton from "./SwapSettingButton";
+import PoolListItem from "./PoolListItem";
+import to from "await-to-js";
+import localService from "../services/local.service";
+import swapNextService from "../services/swap.next.service";
+import STORAGE_KEYS from "../constants/storageKey";
+import { delay } from "../utils/delay";
 
 export default function PoolModule() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [initToken, setInitToken] = useState('')
-  const [finalToken, setFinalToken] = useState('')
-  const [initAmount, setInitAmount] = useState('')
-  const [finalAmount, setFinalAmount] = useState('')
-  const [approveLoad, setApproveLoad] = useState(false)
-  const [slipageTol, setSlipageTol] = useState(0.8)
-  const [deadlineMinute, setDeadlineMinute] = useState(20)
-  const [addLoad, setAddLoad] = useState(false)
-  const [invalidPair, setInvalidPair] = useState(false)
-  const [shareOfPool, setShareOfPool] = useState(0)
-  const [lastInputted, setLastInputted] = useState(0)
-  const [reserves, setReserves] = useState([0, 0])
+  const [isOpen, setIsOpen] = useState(false);
+  const [initToken, setInitToken] = useState("");
+  const [finalToken, setFinalToken] = useState("");
+  const [initAmount, setInitAmount] = useState("");
+  const [finalAmount, setFinalAmount] = useState("");
+  const [approveLoad, setApproveLoad] = useState(false);
+  const [slipageTol, setSlipageTol] = useState(0.8);
+  const [deadlineMinute, setDeadlineMinute] = useState(20);
+  const [addLoad, setAddLoad] = useState(false);
+  const [invalidPair, setInvalidPair] = useState(false);
+  const [shareOfPool, setShareOfPool] = useState(0);
+  const [lastInputted, setLastInputted] = useState(0);
+  const [reserves, setReserves] = useState([0, 0]);
 
-  const walletType = useWalletStore((state) => state.walletType)
-  const sessionLoading = useWalletStore((state) => state.sessionLoading)
-  const wallet = useWalletStore((state) => state.address)
-  const balances = useWalletStore((state) => state.walletBalances)
-  const allowances = useWalletStore((state) => state.walletAllowances)
-  const liquidities = useWalletStore((state) => state.walletLiquidities)
-  const loadAllowances = useWalletStore((state) => state.loadWalletAllowances)
-  const loadBalances = useWalletStore((state) => state.loadWalletBalances)
+  const walletType = useWalletStore((state) => state.walletType);
+  const sessionLoading = useWalletStore((state) => state.sessionLoading);
+  const wallet = useWalletStore((state) => state.address);
+  const balances = useWalletStore((state) => state.walletBalances);
+  const allowances = useWalletStore((state) => state.walletAllowances);
+  const liquidities = useWalletStore((state) => state.walletLiquidities);
+  const loadAllowances = useWalletStore((state) => state.loadWalletAllowances);
+  const loadBalances = useWalletStore((state) => state.loadWalletBalances);
   const loadLiquidiities = useWalletStore(
-    (state) => state.loadWalletLiquidiities,
-  )
+    (state) => state.loadWalletLiquidiities
+  );
 
   const handleAddPool = async () => {
-    setAddLoad(true)
+    setAddLoad(true);
     const deadline =
-      Math.floor(new Date().getTime() / 1000) + deadlineMinute * 60
+      Math.floor(new Date().getTime() / 1000) + deadlineMinute * 60;
 
     try {
-      if (walletType === 'bitkub-next') {
-        const amountTokenAMin = +initAmount - (+initAmount * slipageTol) / 100
-        const amountTokenBMin = +finalAmount - (+finalAmount * slipageTol) / 100
-        const accessToken = localService.getItem(STORAGE_KEYS.BK_ACCESS_TOKEN)
+      if (walletType === "bitkub-next") {
+        const amountTokenAMin = +initAmount - (+initAmount * slipageTol) / 100;
+        const amountTokenBMin =
+          +finalAmount - (+finalAmount * slipageTol) / 100;
+        const accessToken = localService.getItem(STORAGE_KEYS.BK_ACCESS_TOKEN);
         const tx = await swapNextService.addLiquidity(
           accessToken,
           initToken,
@@ -62,15 +63,15 @@ export default function PoolModule() {
           amountTokenAMin.toString(),
           amountTokenBMin.toString(),
           wallet,
-          deadline,
-        )
-        await tx.wait()
-        await delay(5000)
-      } else if (initToken === 'KUB' || finalToken === 'KUB') {
-        if (initToken === 'KUB') {
-          const amountETHMin = +initAmount - (+initAmount * slipageTol) / 100
+          deadline
+        );
+        await tx.wait();
+        await delay(5000);
+      } else if (initToken === "KUB" || finalToken === "KUB") {
+        if (initToken === "KUB") {
+          const amountETHMin = +initAmount - (+initAmount * slipageTol) / 100;
           const amountTokenMin =
-            +finalAmount - (+finalAmount * slipageTol) / 100
+            +finalAmount - (+finalAmount * slipageTol) / 100;
           const tx = await swapService.addLiquidityETH(
             finalToken,
             finalAmount,
@@ -78,12 +79,12 @@ export default function PoolModule() {
             initAmount,
             amountETHMin.toString(),
             wallet,
-            deadline,
-          )
-          await tx.wait()
+            deadline
+          );
+          await tx.wait();
         } else {
-          const amountTokenMin = +initAmount - (+initAmount * slipageTol) / 100
-          const amountETHMin = +finalAmount - (+finalAmount * slipageTol) / 100
+          const amountTokenMin = +initAmount - (+initAmount * slipageTol) / 100;
+          const amountETHMin = +finalAmount - (+finalAmount * slipageTol) / 100;
           const tx = await swapService.addLiquidityETH(
             initToken,
             initAmount,
@@ -91,13 +92,14 @@ export default function PoolModule() {
             finalAmount,
             amountETHMin.toString(),
             wallet,
-            deadline,
-          )
-          await tx.wait()
+            deadline
+          );
+          await tx.wait();
         }
       } else {
-        const amountTokenAMin = +initAmount - (+initAmount * slipageTol) / 100
-        const amountTokenBMin = +finalAmount - (+finalAmount * slipageTol) / 100
+        const amountTokenAMin = +initAmount - (+initAmount * slipageTol) / 100;
+        const amountTokenBMin =
+          +finalAmount - (+finalAmount * slipageTol) / 100;
         const tx = await swapService.addLiquidity(
           initToken,
           finalToken,
@@ -106,81 +108,81 @@ export default function PoolModule() {
           amountTokenAMin.toString(),
           amountTokenBMin.toString(),
           wallet,
-          deadline,
-        )
-        await tx.wait()
+          deadline
+        );
+        await tx.wait();
       }
     } catch (err) {
-      console.log(err)
-      setAddLoad(false)
+      console.log(err);
+      setAddLoad(false);
     }
-    await loadLiquidiities()
-    await loadBalances()
-    setAddLoad(false)
-  }
+    await loadLiquidiities();
+    await loadBalances();
+    setAddLoad(false);
+  };
 
   const handleApprove = async (token: string) => {
-    setApproveLoad(true)
+    setApproveLoad(true);
     try {
-      await tokenService.approve(token).then((tx) => tx?.wait())
+      await tokenService.approve(token).then((tx) => tx?.wait());
     } catch (err) {
-      setApproveLoad(false)
+      setApproveLoad(false);
     }
-    loadAllowances()
-    setApproveLoad(false)
-  }
+    loadAllowances();
+    setApproveLoad(false);
+  };
 
   const calculatePool = async (calculateOut: boolean = true, value: string) => {
     if (
-      (initToken === 'KUB' && finalToken === 'KKUB') ||
-      (initToken === 'KKUB' && finalToken === 'KUB')
+      (initToken === "KUB" && finalToken === "KKUB") ||
+      (initToken === "KKUB" && finalToken === "KUB")
     ) {
-      return setInvalidPair(true)
+      return setInvalidPair(true);
     }
 
     if (calculateOut) {
-      const _spotPrice = reserves[1] / reserves[0]
-      const _shareOfPool = swapService.getShareOfPool(reserves[0], +value)
-      const _finalAmount = _spotPrice * +value
+      const _spotPrice = reserves[1] / reserves[0];
+      const _shareOfPool = swapService.getShareOfPool(reserves[0], +value);
+      const _finalAmount = _spotPrice * +value;
       if (_spotPrice > 0) {
-        setFinalAmount(_finalAmount.toString())
-        setShareOfPool(_shareOfPool)
+        setFinalAmount(_finalAmount.toString());
+        setShareOfPool(_shareOfPool);
       } else {
-        setShareOfPool(_shareOfPool)
+        setShareOfPool(_shareOfPool);
       }
     } else {
-      const _spotPrice = reserves[0] / reserves[1]
-      const _initAmount = _spotPrice * +value
-      const _shareOfPool = swapService.getShareOfPool(reserves[0], _initAmount)
+      const _spotPrice = reserves[0] / reserves[1];
+      const _initAmount = _spotPrice * +value;
+      const _shareOfPool = swapService.getShareOfPool(reserves[0], _initAmount);
       if (_spotPrice > 0) {
-        setInitAmount(_initAmount.toString())
-        setShareOfPool(_shareOfPool)
+        setInitAmount(_initAmount.toString());
+        setShareOfPool(_shareOfPool);
       } else {
-        setShareOfPool(_shareOfPool)
+        setShareOfPool(_shareOfPool);
       }
     }
-  }
+  };
 
   useEffect(() => {
     if (initToken && finalToken && +initAmount > 0) {
-      calculatePool(true, initAmount)
+      calculatePool(true, initAmount);
     } else if (initToken && finalToken && +finalAmount > 0) {
-      calculatePool(false, finalAmount)
+      calculatePool(false, finalAmount);
     }
-  }, [initToken, finalToken, slipageTol, reserves])
+  }, [initToken, finalToken, slipageTol, reserves]);
 
   const renderButton = () => {
     if (sessionLoading) {
-      return <CustomButton isLoading={true} text="" disabled={true} />
+      return <CustomButton isLoading={true} text="" disabled={true} />;
     } else if (!wallet) {
       // check wallet
       if (invalidPair) {
         // check invalid pair
-        return <CustomButton text="Invalid Pair" disabled={true} />
-      } else return <ConnectWalletButton />
+        return <CustomButton text="Invalid Pair" disabled={true} />;
+      } else return <ConnectWalletButton />;
     } else if (invalidPair) {
       // check invalid pair
-      return <CustomButton text="Invalid Pair" disabled={true} />
+      return <CustomButton text="Invalid Pair" disabled={true} />;
     } else if (
       initToken &&
       finalToken &&
@@ -192,13 +194,13 @@ export default function PoolModule() {
       if (+initAmount > +balances[initToken]) {
         return (
           <CustomButton text={`Insufficient ${initToken}`} disabled={true} />
-        )
+        );
       } else
         return (
           <CustomButton text={`Insufficient ${finalToken}`} disabled={true} />
-        )
+        );
     } else if (
-      walletType === 'metamask' &&
+      walletType === "metamask" &&
       initToken &&
       finalToken &&
       initAmount &&
@@ -212,7 +214,7 @@ export default function PoolModule() {
             isLoading={approveLoad}
             onClick={() => handleApprove(initToken)}
           />
-        )
+        );
       } else
         return (
           <CustomButton
@@ -221,7 +223,7 @@ export default function PoolModule() {
             isLoading={approveLoad}
             onClick={() => handleApprove(finalToken)}
           />
-        )
+        );
     } else {
       // check add pool
       return (
@@ -238,27 +240,29 @@ export default function PoolModule() {
           isLoading={addLoad}
           onClick={handleAddPool}
         />
-      )
+      );
     }
-  }
+  };
 
   useEffect(() => {
     if (initToken && finalToken) {
-      getReserve()
+      getReserve();
     }
-  }, [finalToken, initToken])
+  }, [finalToken, initToken]);
 
   const getReserve = async () => {
-    const _initToken = initToken === 'KUB' ? 'KKUB' : initToken
-    const _finalToken = finalToken === 'KUB' ? 'KKUB' : finalToken
-    const [err, res] = await to(swapService.getReserve(_initToken, _finalToken))
+    const _initToken = initToken === "KUB" ? "KKUB" : initToken;
+    const _finalToken = finalToken === "KUB" ? "KKUB" : finalToken;
+    const [err, res] = await to(
+      swapService.getReserve(_initToken, _finalToken)
+    );
     if (err) {
-      return setReserves([0, 0])
+      return setReserves([0, 0]);
     }
-    const [r0, r1]: any = res
-    setReserves([+r0, +r1])
-    setInvalidPair(false)
-  }
+    const [r0, r1]: any = res;
+    setReserves([+r0, +r1]);
+    setInvalidPair(false);
+  };
 
   return (
     <>
@@ -302,9 +306,9 @@ export default function PoolModule() {
                     <input
                       value={initAmount}
                       onChange={(e) => {
-                        setLastInputted(0)
-                        setInitAmount(e.target.value)
-                        calculatePool(true, e.target.value)
+                        setLastInputted(0);
+                        setInitAmount(e.target.value);
+                        calculatePool(true, e.target.value);
                       }}
                       type="number"
                       className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500 focus:outline-none focus:ring-0"
@@ -312,12 +316,12 @@ export default function PoolModule() {
                     <div className="absolute top-0 bottom-0 right-0">
                       <TokenSelector
                         tokens={SWAP_TOKENS.filter(
-                          (token) => token.symbol !== finalToken,
+                          (token) => token.symbol !== finalToken
                         )}
                         selectedToken={initToken}
                         setSelectedToken={(token) => {
-                          getReserve()
-                          setInitToken(token)
+                          getReserve();
+                          setInitToken(token);
                         }}
                       />
                     </div>
@@ -327,9 +331,9 @@ export default function PoolModule() {
                     <input
                       value={finalAmount}
                       onChange={(e) => {
-                        setLastInputted(1)
-                        setFinalAmount(e.target.value)
-                        calculatePool(false, e.target.value)
+                        setLastInputted(1);
+                        setFinalAmount(e.target.value);
+                        calculatePool(false, e.target.value);
                       }}
                       type="number"
                       className="w-full border-2 border-blue-400 rounded-lg h-14 px-5 text-blue-500 focus:outline-none focus:ring-0"
@@ -337,12 +341,12 @@ export default function PoolModule() {
                     <div className="absolute top-0 bottom-0 right-0">
                       <TokenSelector
                         tokens={SWAP_TOKENS.filter(
-                          (token) => token.symbol !== initToken,
+                          (token) => token.symbol !== initToken
                         )}
                         selectedToken={finalToken}
                         setSelectedToken={(token) => {
-                          getReserve()
-                          setFinalToken(token)
+                          getReserve();
+                          setFinalToken(token);
                         }}
                       />
                     </div>
@@ -411,10 +415,10 @@ export default function PoolModule() {
           ) : (
             <div className="w-full">
               {POOL_TOKENS.filter(
-                (token) => +liquidities[token.symbol] > 0.00000000001,
+                (token) => +liquidities[token.symbol] > 0.00000000001
               ).length ? (
                 POOL_TOKENS.filter(
-                  (token) => +liquidities[token.symbol] > 0.00000000001,
+                  (token) => +liquidities[token.symbol] > 0.00000000001
                 ).map((token, i) => (
                   <PoolListItem
                     slipageTol={slipageTol}
@@ -433,5 +437,5 @@ export default function PoolModule() {
         </div>
       </div>
     </>
-  )
+  );
 }
